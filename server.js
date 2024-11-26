@@ -40,6 +40,8 @@ app.get('/lists', (req, res) => {
 
 })
 
+
+
 app.get('/lists/:id', (req, res) => {
     if(ObjectId.isValid(req.params.id)){
         db
@@ -56,6 +58,24 @@ app.get('/lists/:id', (req, res) => {
         handleError(res, 'Wrong id')
     }
 })
+
+// app.get('/lists/:name', (req, res) => {
+//     // if(ObjectId.isValid(req.params.id)){
+//         db
+//             .collection('lists')
+//             .findOne({ name: req.params.name })
+//             .then((doc)=>{
+//                 res
+//                     .status(200)
+//                     .json(doc)
+//                     // .get('OK')
+//             })
+//             .catch(()=> handleError(res, 'Something went wrong.'))
+//     //
+//     // } else {
+//     //     handleError(res, 'Wrong id')
+//     // }
+// })
 
 app.delete('/lists/:id', (req, res) => {
     if(ObjectId.isValid(req.params.id)){
