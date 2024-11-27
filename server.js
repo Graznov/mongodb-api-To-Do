@@ -5,6 +5,7 @@ const {ObjectId} = require("mongodb");
 const PORT = 3000;
 
 const app = express();
+app.use(express.json());
 
 let db
 
@@ -29,7 +30,7 @@ app.get('/lists', (req, res) => {
     db
         .collection('lists')
         .find()
-        .sort({ name: 1 })
+        .sort({ number: 1 })
         .forEach((list)=>{lists.push(list)})
         .then(()=>{
             res
@@ -55,28 +56,14 @@ app.get('/lists/:id', (req, res) => {
             .catch(()=> handleError(res, 'Something went wrong.'))
 
     } else {
+
         handleError(res, 'Wrong id')
+
     }
 })
 
-// app.get('/lists/:name', (req, res) => {
-//     // if(ObjectId.isValid(req.params.id)){
-//         db
-//             .collection('lists')
-//             .findOne({ name: req.params.name })
-//             .then((doc)=>{
-//                 res
-//                     .status(200)
-//                     .json(doc)
-//                     // .get('OK')
-//             })
-//             .catch(()=> handleError(res, 'Something went wrong.'))
-//     //
-//     // } else {
-//     //     handleError(res, 'Wrong id')
-//     // }
-// })
 
+//Удаление:
 app.delete('/lists/:id', (req, res) => {
     if(ObjectId.isValid(req.params.id)){
         db
@@ -94,4 +81,35 @@ app.delete('/lists/:id', (req, res) => {
     }
 })
 
+//Добавление:
+app.post('/lists', (req, res) => {
+    console.log(req.body.name)
+    db
+        .collection('lists')
+        .insertOne(req.body)
+        .then((result)=>{
+            res
+                .status(200)
+                .json(result)
+                // .json("Добавлено")
+        })
+        .catch(()=> handleError(res, 'Something went wrong.'))
+})
 
+//Изменение:
+app.patch('/lists/:id', (req, res)=>{
+    if(ObjectId.isValid(req.params.id)){
+        db
+            .collection('lists')
+            .updateOne({ _id: new ObjectId(req.params.id) }, {  $set : req.body } )
+            .then((result)=>{
+                res
+                    .status(200)
+                    .json(result)
+            })
+            .catch(()=> handleError(res, 'Something went wrong.'))
+
+    } else {
+        handleError(res, 'Del.Wrong id')
+    }
+})
