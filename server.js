@@ -1,6 +1,7 @@
 const express = require('express');
 const { connectToDb, getDb } = require('./db');
 const {ObjectId} = require("mongodb");
+const {query} = require("express");
 
 const PORT = 3000;
 
@@ -41,7 +42,19 @@ app.get('/lists', (req, res) => {
 
 })
 
+app.get('/lists/:id/Array', (req, res) => {
+    // const lists = []
+    db
+        .collection('lists')
+        .findOne({ _id: new ObjectId(req.params.id) })
+        .then((doc)=>{
+            res
+                .status(200)
+                .json(doc.Array)
+        })
+        .catch(()=> handleError(res, 'Something went wrong.'))
 
+})
 
 app.get('/lists/:id', (req, res) => {
     if(ObjectId.isValid(req.params.id)){
@@ -96,8 +109,9 @@ app.post('/lists', (req, res) => {
         .catch(()=> handleError(res, 'Something went wrong.'))
 })
 
-//Изменение:
+// Изменение:
 app.patch('/lists/:id', (req, res)=>{
+
     if(ObjectId.isValid(req.params.id)){
         db
             .collection('lists')
@@ -113,3 +127,32 @@ app.patch('/lists/:id', (req, res)=>{
         handleError(res, 'Del.Wrong id')
     }
 })
+
+
+
+// app.post('/lists/', (req, res)=>{
+
+    // const lists = []
+    // db
+    //     .collection('lists')
+    //     .find()
+    //     .sort({ number: 1 })
+    //     .forEach((list)=>{lists.push(list.name)})
+    //
+    // console.log(lists)
+
+    // if(ObjectId.isValid(req.params.id)){
+    //     db
+    //         .collection('lists')
+    //         .updateOne({ _id: new ObjectId(req.params.id) }, {  $set : req.body } )
+    //         .then((result)=>{
+    //             res
+    //                 .status(200)
+    //                 .json(result)
+    //         })
+    //         .catch(()=> handleError(res, 'Something went wrong.'))
+    //
+    // } else {
+    //     handleError(res, 'Del.Wrong id')
+    // }
+// })
