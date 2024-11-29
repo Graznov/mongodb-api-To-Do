@@ -3,6 +3,7 @@ const cors = require('cors')
 const { connectToDb, getDb } = require('./db');
 const {ObjectId} = require("mongodb");
 const {query} = require("express");
+const {generateToken} = require("./generToken");
 
 const corsOptions = {
     origin: 'http://localhost:5173',  // Заменить на нужный домен или массив доменов или разрешить все домены '*'
@@ -33,6 +34,78 @@ connectToDb((err)=>{
 const handleError = (res, error) => {
     res.status(500).json({ error })
 }
+
+// async function getArrayFromDB() {
+//     const client = new MongoClient(url);
+//     try {
+//         // Подключение к серверу
+//         await client.connect();
+//         console.log('Подключение успешно!');
+//
+//         const db = client.db(dbName);
+//         const collection = db.collection('YourCollection');
+//
+//         // Получение данных
+//         const data = await collection.find({}, { projection: { name: 1, value: 1, _id: 0 } }).toArray();
+//         console.log('Массив из базы данных:', data);
+//         return data;
+//     } catch (err) {
+//         console.error('Ошибка:', err);
+//     } finally {
+//         await client.close();
+//     }
+// }
+
+
+
+
+//Добавление:
+app.post('/lists', (req, res) => {
+
+    // let bool = false
+    // db
+    //     .collection('lists')
+    //     .find()
+    //     .forEach(e=> {
+    //         if(e.email===req.body.email) bool=true
+    //         console.log(bool)
+    //     })
+    //     .then(()=>{
+    //         if(bool){
+    //             res
+    //                 .status(404)
+    //                 .json( "ERROR EMAIL" )
+    //         }
+    //     })
+
+
+
+    // if(bool===true){
+    //     console.log(`bool: ${bool}`)
+    // } else if(bool===false) {
+
+        db
+            .collection('lists')
+            .insertOne(req.body)
+            .then((result)=>{
+                db.collection('lists').updateOne({ _id: result.insertedId }, { $set: { token: generateToken(41) } }) //добавление токена
+                res
+                    .status(200)
+                    // .json(result)
+                    .json("Добавлено")
+            })
+            .catch(()=> handleError(res, 'Something went wrong.'))
+
+    // }
+
+
+})
+
+// console.log(generateToken(41))
+// const timer = setInterval(()=>{
+//     console.log(13)
+// },1000)
+
 // app.get('/lists/:name', async (req, res) => {
 //     // try {
 //     //     const listName = req.params.name; // Получаем значение параметра "name" из URL
@@ -63,13 +136,16 @@ const handleError = (res, error) => {
 // });
 
 
+
 app.get('/lists', (req, res) => {
     const lists = []
     db
         .collection('lists')
         .find()
         .sort({ number: 1 })
-        .forEach((list)=>{lists.push(list)})
+        .forEach((list)=>{
+            lists.push(list)
+        })
         .then(()=>{
             res
                 .status(200)
@@ -144,20 +220,11 @@ app.delete('/lists/:id', (req, res) => {
     }
 })
 
-//Добавление:
-app.post('/lists', (req, res) => {
-    console.log(req.body.name)
-    db
-        .collection('lists')
-        .insertOne(req.body)
-        .then((result)=>{
-            res
-                .status(200)
-                .json(result)
-                // .json("Добавлено")
-        })
-        .catch(()=> handleError(res, 'Something went wrong.'))
-})
+
+
+
+
+
 
 // Изменение:
 // app.patch('/lists/:id', (req, res)=>{
