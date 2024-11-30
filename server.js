@@ -35,11 +35,12 @@ const handleError = (res, error) => {
     res.status(500).json({ error })
 }
 
-function changeToken(){
 
-    db
-        .collection('lists')
-        .updateMany({}, { $set: { token: generateToken(41)} })
+// function changeToken(){
+//
+//     db
+//         .collection('lists')
+//         .updateMany({}, { $set: { token: generateToken(41)} })
         // .find()
         // .forEach((doc)=>{
         //     doc.updateOne({ _id: result.insertedId }, { $set: { token: generateToken(41)} }) //добавление токена
@@ -51,10 +52,11 @@ function changeToken(){
         //     //     // .json(result)
         //     //     .json("Добавлено")
         // })
-        .catch(()=> handleError(res, 'Something went wrong.'))
-}
+//
+//         .catch(()=> handleError(res, 'Something went wrong.'))
+// }
 
-changeToken()
+// changeToken()
 
 
 //Добавление:
