@@ -68,40 +68,27 @@ app.post('/lists', (req, res) => {
         .then(doc => {
             if(doc){
                 console.log(1, `Email ${req.body.email} занято`)
-                // res.status(400).json({message: `Email ${req.body.email} занято`,
-                //     data:doc})
+
+                        res
+                            .status(409)
+                            .json('имя занято')
+
             } else {
                 console.log(2, `Email ${req.body.email} свободно`)
-                // res.status(404).json({ message: `Список с email ${req.body.email} не найден.` })
 
                 db
                     .collection('lists')
                     .insertOne(req.body)
                     .then((result)=>{
-                        db.collection('lists').updateOne({ _id: result.insertedId }, { $set: { token: generateToken(41), creatDat: new Date()} }) //добавление токена
+                        db.collection('lists').updateOne({ _id: result.insertedId }, { $set: { _token: generateToken(41), _creatDat: new Date(), _tasksList:[]} }) //добавление токена и даты создания
                         res
-                            .status(200)
-                            // .json(result)
-                            // .json("Добавлено")
+                            .status(201)
+                            .json("Created")
                     })
-                    .catch(()=> handleError(res, 'Something went wrong.'))
             }
         })
         .catch(()=> handleError(res, 'Something went wrong.'))
-
-        // db
-        //     .collection('lists')
-        //     .insertOne(req.body)
-        //     .then((result)=>{
-        //         db.collection('lists').updateOne({ _id: result.insertedId }, { $set: { token: generateToken(41), creatDat: new Date()} }) //добавление токена
-        //         res
-        //             .status(200)
-        //             // .json(result)
-        //             .json("Добавлено")
-        //     })
-        //     .catch(()=> handleError(res, 'Something went wrong.'))
-
-})
+    })
 
 // console.log(generateToken(41))
 // const timer = setInterval(()=>{
