@@ -95,29 +95,30 @@ app.post('/lists', (req, res) => {
 //     console.log(13)
 // },1000)
 
-// app.get('/lists/:name', async (req, res) => {
-//     // try {
-//     //     const listName = req.params.name; // Получаем значение параметра "name" из URL
-//     //     const foundList = await db.collection('lists').findOne({ name: listName });
-//     //
-//     //     if (!foundList) {
-//     //         return res.status(404).json({ message: `Список с именем ${listName} не найден.` });
-//     //     }
-//     //
-//     //     // return res.json(foundList); // Возвращаем найденный список
-//     //     return res.json({message: `Имя ${listName} занято`})
-//     // } catch (error) {
-//     //     handleError(res, 'Something went wrong.');
-//     // }
-//
+// app.get('/lists/:email', async (req, res) => {
+    // try {
+    //     const listName = req.params.name; // Получаем значение параметра "name" из URL
+    //     const foundList = await db.collection('lists').findOne({ name: listName });
+    //
+    //     if (!foundList) {
+    //         return res.status(404).json({ message: `Список с именем ${listName} не найден.` });
+    //     }
+    //
+    //     // return res.json(foundList); // Возвращаем найденный список
+    //     return res.json({message: `Имя ${listName} занято`})
+    // } catch (error) {
+    //     handleError(res, 'Something went wrong.');
+    // }
+
+
 //     db
 //         .collection('lists')
-//         .findOne({name:req.params.name})
+//         .findOne({email:req.params.email})
 //         .then(doc => {
 //             if(doc){
-//                 res.json({message: `Имя ${req.params.name} занято`})
+//                 res.json({message: `Аккаунт ${req.params.email} найден`})
 //             } else {
-//                 res.status(404).json({ message: `Список с именем ${req.params.name} не найден.` })
+//                 res.status(404).json({ message: `Аккаунт ${req.params.email} не найден.` })
 //             }
 //         })
 //         .catch(()=> handleError(res, 'Something went wrong.'))
@@ -144,50 +145,95 @@ app.get('/lists', (req, res) => {
 
 })
 
-app.get('/lists/:id/Array', (req, res) => {
-    // const lists = []
-    db
-        .collection('lists')
-        .findOne({ _id: new ObjectId(req.params.id) })
-        .then((doc)=>{
-            res
-                .status(200)
-                .json(doc.Array)
-        })
-        .catch(()=> handleError(res, 'Something went wrong.'))
+// app.get('/lists/:id/Array', (req, res) => {
+//     // const lists = []
+//     db
+//         .collection('lists')
+//         .findOne({ _id: new ObjectId(req.params.id) })
+//         .then((doc)=>{
+//             res
+//                 .status(200)
+//                 .json(doc.Array)
+//         })
+//         .catch(()=> handleError(res, 'Something went wrong.'))
+//
+// })
 
-})
+function aaa(a){
+
+    let form = {
+        email:'',
+        pass:''
+    }
+    let spase = false
+
+    a.split('').forEach((el) => {
+        if (el === ' ') spase = true;
+        if (!spase ) {
+            form.email += el
+        } else if(spase && el !== ' ') {
+            form.pass += el
+        }
+    })
+
+
+
+    // console.log(`email: ${form.email.split('')}\npass: ${form.pass.split('')}`)
+    return [form.email, form.pass]
+
+}
 
 app.get('/lists/:vallue', (req, res) => {
-    if(ObjectId.isValid(req.params.vallue)){
+    // if(ObjectId.isValid(req.params.vallue)){
+    console.log(`req.params.vallue: ${req.params.vallue}`);
+
+    aaa(req.params.vallue)
+
+    // console.log(vallue)
+
+
         db
             .collection('lists')
-            .findOne({ _id: new ObjectId(req.params.vallue) })
+            .findOne({ email: aaa(req.params.vallue)[0], password: aaa(req.params.vallue)[1] })
             .then((doc)=>{
-                res
-                    .status(200)
-                    .json(doc)
+
+                console.log(`doc:${JSON.stringify(doc)}`)
+                let docRedact = {
+                    name:doc.name,
+                    token:doc._token,
+                    tasksList:doc._tasksList,
+                }
+
+
+                if(doc){
+                    res
+                        .status(200)
+                        .json(docRedact)
+                } else {
+                    console.log('No Document Found')
+                }
+
             })
             .catch(()=> handleError(res, 'Something went wrong.'))
 
-    } else {
+    // } else {
 
         // handleError(res, 'Wrong id')
 
-        db
-            .collection('lists')
-            .findOne({email:req.params.vallue})
-            .then(doc => {
-                if(doc){
-                    res.json({message: `Email ${req.params.vallue} занято`,
-                    data:doc})
-                } else {
-                    res.status(404).json({ message: `Список с email ${req.params.vallue} не найден.` })
-                }
-            })
-            .catch(()=> handleError(res, 'Something went wrong.'))
-
-    }
+    //     db
+    //         .collection('lists')
+    //         .findOne({email:req.params.vallue})
+    //         .then(doc => {
+    //             if(doc){
+    //                 res.json({message: `Email ${req.params.vallue} занято`,
+    //                 data:doc})
+    //             } else {
+    //                 res.status(404).json({ message: `Список с email ${req.params.vallue} не найден.` })
+    //             }
+    //         })
+    //         .catch(()=> handleError(res, 'Something went wrong.'))
+    //
+    // }
 })
 
 
