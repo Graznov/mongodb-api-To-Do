@@ -80,7 +80,7 @@ app.post('/lists', (req, res) => {
                     .collection('lists')
                     .insertOne(req.body)
                     .then((result)=>{
-                        db.collection('lists').updateOne({ _id: result.insertedId }, { $set: { _token: generateToken(41), _creatDat: new Date(), _tasksList:[]} }) //добавление токена и даты создания
+                        db.collection('lists').updateOne({ _id: result.insertedId }, { $set: { _token: generateToken(41), _tokenTwo: generateToken(13), _creatDat: new Date(), _tasksList:[]} }) //добавление токена и даты создания
                         res
                             .status(201)
                             .json("Created")
@@ -89,6 +89,7 @@ app.post('/lists', (req, res) => {
         })
         .catch(()=> handleError(res, 'Something went wrong.'))
     })
+
 
 // console.log(generateToken(41))
 // const timer = setInterval(()=>{
@@ -176,8 +177,6 @@ function aaa(a){
         }
     })
 
-
-
     // console.log(`email: ${form.email.split('')}\npass: ${form.pass.split('')}`)
     return [form.email, form.pass]
 
@@ -200,9 +199,13 @@ app.get('/lists/:vallue', (req, res) => {
                 console.log(`doc:${JSON.stringify(doc)}`)
                 let docRedact = {
                     name:doc.name,
+                    email:doc.email,
                     token:doc._token,
+                    tokenTwo:doc._tokenTwo,
                     tasksList:doc._tasksList,
+                    creatDat:doc._creatDat,
                 }
+
 
 
                 if(doc){
