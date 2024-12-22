@@ -80,12 +80,17 @@ app.post('/lists', (req, res) => {
                     .collection('lists')
                     .insertOne(req.body)
                     .then((result)=>{
-                        db.collection('lists').updateOne({ _id: result.insertedId }, { $set: { _token: generateToken(41), _tokenTwo: generateToken(13), _creatDat: new Date(), _tasksList:[]} }) //добавление токена и даты создания
+                        db.collection('lists').updateOne({ _id: result.insertedId }, {
+                                $set: { refreshToken: generateToken(41),
+                                accessToken: generateToken(13),
+                                creatDat: new Date(),
+                                tasksList:[]} }) //добавление токена и даты создания
                         res
                             .status(201)
                             .json("Created")
                     })
             }
+
         })
         .catch(()=> handleError(res, 'Something went wrong.'))
     })
@@ -111,12 +116,12 @@ app.get('/lists/:vallue', (req, res) => {
             let docRedact = {
                 name:doc.name,
                 email:doc.email,
-                token:doc._token,
-                tokenTwo:doc._tokenTwo,
-                tasksList:doc._tasksList,
-                creatDat:doc._creatDat,
+                // token:doc.refreshToken,
+                accessToken:doc.accessToken,
+                tasksList:doc.tasksList,
+                creatDat:doc.creatDat,
+                id:doc._id
             }
-
 
 
             if(doc){
