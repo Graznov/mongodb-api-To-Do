@@ -116,7 +116,7 @@ app.get('/lists/:vallue', (req, res) => {
             let docRedact = {
                 name:doc.name,
                 email:doc.email,
-                // token:doc.refreshToken,
+                refreshToken:doc.refreshToken,
                 accessToken:doc.accessToken,
                 tasksList:doc.tasksList,
                 creatDat:doc.creatDat,
