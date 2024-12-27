@@ -199,10 +199,10 @@ app.get('/lists/:vallue', (req, res) => {
 //     const lists = []
 //
 //     // console.log(req.params)
-//     if(!req.params.vallue){
-//         console.log(req.params.vallue)
-//         return
-//     }
+//     // if(!req.params.vallue){
+//     //     console.log(req.params.vallue)
+//     //     return
+//     // }
 //     db
 //         .collection('lists')
 //         .find()
