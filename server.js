@@ -124,6 +124,7 @@ app.get('/lists/:vallue', (req, res) => {
             }
 
 
+
             if(doc){
                 res
                     .status(200)
@@ -194,23 +195,29 @@ app.get('/lists/:vallue', (req, res) => {
 
 
 
-app.get('/lists', (req, res) => {
-    const lists = []
-    db
-        .collection('lists')
-        .find()
-        .sort({ number: 1 })
-        .forEach((list)=>{
-            lists.push(list)
-        })
-        .then(()=>{
-            res
-                .status(200)
-                .json(lists)
-        })
-        .catch(()=> handleError(res, 'Something went wrong.'))
-
-})
+// app.get('/lists', (req, res) => {
+//     const lists = []
+//
+//     // console.log(req.params)
+//     if(!req.params.vallue){
+//         console.log(req.params.vallue)
+//         return
+//     }
+//     db
+//         .collection('lists')
+//         .find()
+//         .sort({ number: 1 })
+//         .forEach((list)=>{
+//             lists.push(list)
+//         })
+//         .then(()=>{
+//             res
+//                 .status(200)
+//                 .json(lists)
+//         })
+//         .catch(()=> handleError(res, 'Something went wrong.'))
+//
+// })
 
 // app.get('/lists/:id/Array', (req, res) => {
 //     // const lists = []
