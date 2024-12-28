@@ -35,7 +35,27 @@ const handleError = (res, error) => {
     res.status(500).json({ error })
 }
 
+function decodeVallue(a){
 
+    let form = {
+        email:'',
+        pass:''
+    }
+    let spase = false
+
+    a.split('').forEach((el) => {
+        if (el === ' ') spase = true;
+        if (!spase ) {
+            form.email += el
+        } else if(spase && el !== ' ') {
+            form.pass += el
+        }
+    })
+
+    // console.log(`email: ${form.email.split('')}\npass: ${form.pass.split('')}`)
+    return [form.email, form.pass]
+
+}
 // function changeToken(){
 //
 //     db
@@ -109,7 +129,7 @@ app.get('/lists/:vallue', (req, res) => {
 
     db
         .collection('lists')
-        .findOne({ email: aaa(req.params.vallue)[0], password: aaa(req.params.vallue)[1] })
+        .findOne({ email: decodeVallue(req.params.vallue)[0], password: aaa(req.params.vallue)[1] })
         .then((doc)=>{
 
             console.log(`doc:${JSON.stringify(doc)}`)
@@ -157,6 +177,49 @@ app.get('/lists/:vallue', (req, res) => {
 })
 //...аутитнтефикация
 
+
+//Удаление:
+app.delete('/lists/:id', (req, res) => {
+    if(ObjectId.isValid(req.params.id)){
+        db
+            .collection('lists')
+            .deleteOne({ _id: new ObjectId(req.params.id) })
+            .then((result)=>{
+                res
+                    .status(200)
+                    .json(result)
+            })
+            .catch(()=> handleError(res, 'Something went wrong.'))
+
+    } else {
+        handleError(res, 'Del.Wrong id')
+    }
+})
+//...удаление
+
+
+//Изменение записей...
+app.patch('/lists/:id', (req, res)=>{
+
+    if(ObjectId.isValid(req.params.id)){
+        db
+            .collection('lists')
+            .updateOne({ _id: new ObjectId(req.params.id) }, {  $set: { tasksList: req.body } } )
+            // .updateMany({ email: req.params.id }, {  $set: { tasksList: req.body } } )
+            .then((result)=>{
+                res
+                    .status(200)
+                    .json(result)
+            })
+            .catch(()=> handleError(res, 'Something went wrong.'))
+
+    } else {
+        handleError(res, 'Del.Wrong id')
+
+    }
+
+})
+// ...изменение записей
 
 // console.log(generateToken(41))
 // const timer = setInterval(()=>{
@@ -233,48 +296,12 @@ app.get('/lists/:vallue', (req, res) => {
 //
 // })
 
-function aaa(a){
-
-    let form = {
-        email:'',
-        pass:''
-    }
-    let spase = false
-
-    a.split('').forEach((el) => {
-        if (el === ' ') spase = true;
-        if (!spase ) {
-            form.email += el
-        } else if(spase && el !== ' ') {
-            form.pass += el
-        }
-    })
-
-    // console.log(`email: ${form.email.split('')}\npass: ${form.pass.split('')}`)
-    return [form.email, form.pass]
-
-}
 
 
 
 
-//Удаление:
-app.delete('/lists/:id', (req, res) => {
-    if(ObjectId.isValid(req.params.id)){
-        db
-            .collection('lists')
-            .deleteOne({ _id: new ObjectId(req.params.id) })
-            .then((result)=>{
-                res
-                    .status(200)
-                    .json(result)
-            })
-            .catch(()=> handleError(res, 'Something went wrong.'))
 
-    } else {
-        handleError(res, 'Del.Wrong id')
-    }
-})
+
 
 
 
@@ -300,25 +327,6 @@ app.delete('/lists/:id', (req, res) => {
 //         handleError(res, 'Del.Wrong id')
 //     }
 // })
-
-app.patch('/lists/:name', (req, res)=>{
-
-    // if(ObjectId.isValid(req.params.id)){
-        db
-            .collection('lists')
-            .updateMany({ name: req.params.name }, {  $push: { Array: req.body } } )
-            .then((result)=>{
-                res
-                    .status(200)
-                    .json(result)
-            })
-            .catch(()=> handleError(res, 'Something went wrong.'))
-
-    // } else {
-    //     handleError(res, 'Del.Wrong id')
-    // }
-})
-
 
 
 
