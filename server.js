@@ -122,14 +122,14 @@ app.get('/lists/:vallue', (req, res) => {
     // if(ObjectId.isValid(req.params.vallue)){
     console.log(`req.params.vallue: ${req.params.vallue}`);
 
-    aaa(req.params.vallue)
+    // aaa(req.params.vallue)
 
     // console.log(vallue)
 
 
     db
         .collection('lists')
-        .findOne({ email: decodeVallue(req.params.vallue)[0], password: aaa(req.params.vallue)[1] })
+        .findOne({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] })
         .then((doc)=>{
 
             console.log(`doc:${JSON.stringify(doc)}`)
