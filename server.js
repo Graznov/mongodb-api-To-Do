@@ -20,6 +20,7 @@ app.use(express.json());
 
 let db
 
+
 connectToDb((err)=>{
     if (!err){
         app.listen(PORT, (err) => {
@@ -58,24 +59,34 @@ function decodeVallue(a){
 }
 // function changeToken(){
 //
-//     db
-//         .collection('lists')
-//         .updateMany({}, { $set: { token: generateToken(41)} })
+//     app.get('lists', ()=>{
+//         db
+//             .collection('lists')
+//             .find()
+//             .forEach(d=>{
+//                 console.log(d._id)
+//             })
+//     })
+
+        // .updateMany({}, { $set: { token: generateToken(41)} })
         // .find()
         // .forEach((doc)=>{
-        //     doc.updateOne({ _id: result.insertedId }, { $set: { token: generateToken(41)} }) //добавление токена
+
+            // db.collection('lists').updateOne
+            // doc.updateMany({  }, { $set: { refreshToken: generateToken(41)} }) //добавление токена
         // })
         // .then((result)=>{
-        //     // db.collection('lists').updateOne({ _id: result.insertedId }, { $set: { token: generateToken(41), creatDat: new Date()} }) //добавление токена
-        //     // res
-        //     //     .status(200)
-        //     //     // .json(result)
-        //     //     .json("Добавлено")
+            // db.collection('lists').updateOne({ _id: result.insertedId }, { $set: { token: generateToken(41), creatDat: new Date()} }) //добавление токена
+            // res
+            //     .status(200)
+            //     // .json(result)
+            //     .json("Добавлено")
         // })
-//
-//         .catch(()=> handleError(res, 'Something went wrong.'))
-// }
 
+        // .catch(()=> handleError(res, 'Something went wrong.'))
+//     console.log('Change Token')
+// }
+//
 // changeToken()
 
 
@@ -121,11 +132,6 @@ app.post('/lists', (req, res) => {
 app.get('/lists/:vallue', (req, res) => {
     // if(ObjectId.isValid(req.params.vallue)){
     console.log(`req.params.vallue: ${req.params.vallue}`);
-
-    // aaa(req.params.vallue)
-
-    // console.log(vallue)
-
 
     db
         .collection('lists')
