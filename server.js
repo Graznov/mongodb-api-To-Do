@@ -57,37 +57,41 @@ function decodeVallue(a){
     return [form.email, form.pass]
 
 }
-// function changeToken(){
-//
-//     app.get('lists', ()=>{
-//         db
-//             .collection('lists')
-//             .find()
-//             .forEach(d=>{
-//                 console.log(d._id)
-//             })
-//     })
+function changeToken(){
 
+    app.use('lists', ()=>{
+
+        db
+            .collection('lists')
+            .find()
+        
+            // .forEach(d=>{
+            //     console.log(d._id)
+            //     console.log('Change Token')
+            //
+            //
+            // })
+
+    })
         // .updateMany({}, { $set: { token: generateToken(41)} })
         // .find()
         // .forEach((doc)=>{
-
-            // db.collection('lists').updateOne
-            // doc.updateMany({  }, { $set: { refreshToken: generateToken(41)} }) //добавление токена
+        //
+        //     db.collection('lists').updateOne
+        //     doc.updateMany({  }, { $set: { refreshToken: generateToken(41)} }) //добавление токена
         // })
         // .then((result)=>{
-            // db.collection('lists').updateOne({ _id: result.insertedId }, { $set: { token: generateToken(41), creatDat: new Date()} }) //добавление токена
-            // res
-            //     .status(200)
-            //     // .json(result)
-            //     .json("Добавлено")
+        //     db.collection('lists').updateOne({ _id: result.insertedId }, { $set: { token: generateToken(41), creatDat: new Date()} }) //добавление токена
+        //     res
+        //         .status(200)
+        //         // .json(result)
+        //         .json("Добавлено")
         // })
-
+        //
         // .catch(()=> handleError(res, 'Something went wrong.'))
-//     console.log('Change Token')
-// }
-//
-// changeToken()
+}
+
+changeToken()
 
 
 //Добавление:
