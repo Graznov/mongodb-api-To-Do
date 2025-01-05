@@ -5,6 +5,9 @@ const {ObjectId} = require("mongodb");
 const {query} = require("express");
 const {generateToken} = require("./generToken");
 
+const { MongoClient } = require("mongodb");
+
+
 const corsOptions = {
     origin: 'http://localhost:5173',  // Заменить на нужный домен или массив доменов или разрешить все домены '*'
     methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Разрешаем HTTP-методы
@@ -57,39 +60,45 @@ function decodeVallue(a){
     return [form.email, form.pass]
 
 }
-function changeToken(){
 
-    app.use('lists', ()=>{
+async function changeToken(){
 
-        db
-            .collection('lists')
-            .find()
-        
-            // .forEach(d=>{
-            //     console.log(d._id)
-            //     console.log('Change Token')
-            //
-            //
-            // })
+    const uri = "mongodb://localhost:27017"; // Укажите URI MongoDB
+    const client = new MongoClient(uri);
 
-    })
-        // .updateMany({}, { $set: { token: generateToken(41)} })
-        // .find()
-        // .forEach((doc)=>{
-        //
-        //     db.collection('lists').updateOne
-        //     doc.updateMany({  }, { $set: { refreshToken: generateToken(41)} }) //добавление токена
-        // })
-        // .then((result)=>{
-        //     db.collection('lists').updateOne({ _id: result.insertedId }, { $set: { token: generateToken(41), creatDat: new Date()} }) //добавление токена
-        //     res
-        //         .status(200)
-        //         // .json(result)
-        //         .json("Добавлено")
-        // })
-        //
-        // .catch(()=> handleError(res, 'Something went wrong.'))
+    try {
+        // Подключение к базе данных
+        await client.connect();
+        console.log("Подключились к MongoDB");
+
+        // Выберите базу данных и коллекцию
+        const database = client.db("to_do_list"); // Название базы данных
+
+        const collection = database.collection("lists").find(); // Название коллекции
+
+
+
+
+        console.log(`collection: ${collection[0]}`)
+        // Пример операции: добавление документа
+        // const newDocument = { name: "Пример", value: 42 };
+        // const result = await collection.insertOne(newDocument);
+        // console.log("Добавлен документ с ID:", result.insertedId);
+
+        // Пример операции: чтение данных
+        // const documents = await collection.find({}).toArray();
+        // console.log("Документы в коллекции:", documents);
+
+    } catch (error) {
+        console.error("Ошибка работы с MongoDB:", error);
+    } finally {
+        // Закрытие подключения
+        await client.close();
+        console.log("Подключение закрыто");
+    }
 }
+
+
 
 changeToken()
 
