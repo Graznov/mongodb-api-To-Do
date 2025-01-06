@@ -69,17 +69,17 @@ async function changeToken(){
     try {
         // Подключение к базе данных
         await client.connect();
+        console.log(client)
         console.log("Подключились к MongoDB");
 
         // Выберите базу данных и коллекцию
         const database = client.db("to_do_list"); // Название базы данных
-
+        console.log(`Database:`)
+        console.log(database)
         const collection = database.collection("lists").find(); // Название коллекции
 
-
-
-
-        console.log(`collection: ${collection[0]}`)
+        console.log(`collection: `)
+        console.log(collection)
         // Пример операции: добавление документа
         // const newDocument = { name: "Пример", value: 42 };
         // const result = await collection.insertOne(newDocument);
@@ -96,6 +96,7 @@ async function changeToken(){
         await client.close();
         console.log("Подключение закрыто");
     }
+
 }
 
 
