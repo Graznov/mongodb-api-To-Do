@@ -61,50 +61,29 @@ function decodeVallue(a){
 
 }
 
-async function changeToken(){
+// Обновление RefreshToken...
+async function changeRefreshToken(){
+    const url = "mongodb://localhost:27017"; // Укажите URI MongoDB
+    const client = new MongoClient(url);
+    await client.connect()
+    const database = client.db("to_do_list"); // Название базы данных
+    await database
+        .collection('lists')
+        .find()
+        .forEach(elem => {
 
-    const uri = "mongodb://localhost:27017"; // Укажите URI MongoDB
-    const client = new MongoClient(uri);
-
-    try {
-        // Подключение к базе данных
-        await client.connect();
-        console.log(client)
-        console.log("Подключились к MongoDB");
-
-        // Выберите базу данных и коллекцию
-        const database = client.db("to_do_list"); // Название базы данных
-        console.log(`Database:`)
-        console.log(database)
-        const collection = database.collection("lists").find(); // Название коллекции
-
-        console.log(`collection: `)
-        console.log(collection)
-        // Пример операции: добавление документа
-        // const newDocument = { name: "Пример", value: 42 };
-        // const result = await collection.insertOne(newDocument);
-        // console.log("Добавлен документ с ID:", result.insertedId);
-
-        // Пример операции: чтение данных
-        // const documents = await collection.find({}).toArray();
-        // console.log("Документы в коллекции:", documents);
-
-    } catch (error) {
-        console.error("Ошибка работы с MongoDB:", error);
-    } finally {
-        // Закрытие подключения
-        await client.close();
-        console.log("Подключение закрыто");
-    }
-
+            database
+                .collection('lists')
+                .updateMany({email: elem.email}, {$set:{refreshToken:generateToken(41)}})
+            // console.log(`elem._id: ${elem._id}\nelem.refreshToken: ${elem.refreshToken}`);
+        })
 }
+// changeRefreshToken()
+// ...обновление RefreshToken
 
 
 
-changeToken()
-
-
-//Добавление:
+//Добавление аккаунта:
 app.post('/lists', (req, res) => {
 
     db
