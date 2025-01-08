@@ -4,7 +4,7 @@ const { connectToDb, getDb } = require('./db');
 const {ObjectId} = require("mongodb");
 const {query} = require("express");
 const {generateToken} = require("./generToken");
-
+const cookieParser = require('cookie-parser');
 const { MongoClient } = require("mongodb");
 
 
@@ -17,9 +17,20 @@ const corsOptions = {
 
 const PORT = 3000;
 
+///////////////////
+
+
+// const app = express();
+
+// Подключаем cookie-parser
+// app.use(cookieParser());
+///////////////////
+
 const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
+
 
 let db
 
@@ -200,6 +211,9 @@ app.delete('/lists/:id', (req, res) => {
 //Изменение записей...
 app.patch('/lists/:id', (req, res)=>{
 
+    console.log(`***************************\nreq:`)
+    // app.use(cookieParser());
+    console.log(req)
     if(ObjectId.isValid(req.params.id)){
         db
             .collection('lists')
