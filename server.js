@@ -213,7 +213,7 @@ app.patch('/lists/:id', (req, res)=>{
 
     console.log(`***************************\nreq:`)
     // app.use(cookieParser());
-    console.log(req)
+    console.log(req.cookies)
     if(ObjectId.isValid(req.params.id)){
         db
             .collection('lists')
