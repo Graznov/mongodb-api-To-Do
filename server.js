@@ -137,34 +137,67 @@ app.get('/lists/:vallue', (req, res) => {
     // if(ObjectId.isValid(req.params.vallue)){
     console.log(`req.params.vallue: ${req.params.vallue}`);
 
-    db
-        .collection('lists')
-        .findOne({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] })
-        .then((doc)=>{
+    if (req.params.vallue.includes(' ')){
+        db
+            .collection('lists')
+            .findOne({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] })
+            .then((doc)=>{
 
-            console.log(`doc:${JSON.stringify(doc)}`)
-            let docRedact = {
-                name:doc.name,
-                email:doc.email,
-                refreshToken:doc.refreshToken,
-                accessToken:doc.accessToken,
-                tasksList:doc.tasksList,
-                creatDat:doc.creatDat,
-                id:doc._id
-            }
+                console.log(`doc:${JSON.stringify(doc)}`)
+                let docRedact = {
+                    name:doc.name,
+                    email:doc.email,
+                    refreshToken:doc.refreshToken,
+                    accessToken:doc.accessToken,
+                    tasksList:doc.tasksList,
+                    creatDat:doc.creatDat,
+                    id:doc._id
+                }
 
 
+                if(doc){
+                    res
+                        .status(200)
+                        .json(docRedact)
+                } else {
+                    console.log('No Document Found')
+                }
 
-            if(doc){
-                res
-                    .status(200)
-                    .json(docRedact)
-            } else {
-                console.log('No Document Found')
-            }
+            })
+            .catch(()=> handleError(res, 'Something went wrong.'))
+    } else {
 
-        })
-        .catch(()=> handleError(res, 'Something went wrong.'))
+        console.log(`accessToken: ${req.params.vallue}`)
+            db
+                .collection('lists')
+                .findOne({ accessToken: req.params.vallue})
+                .then((doc)=>{
+
+                    console.log(`doc:${JSON.stringify(doc)}`)
+                    let docRedact = {
+                        name:doc.name,
+                        email:doc.email,
+                        refreshToken:doc.refreshToken,
+                        accessToken:doc.accessToken,
+                        tasksList:doc.tasksList,
+                        creatDat:doc.creatDat,
+                        id:doc._id
+                    }
+
+
+                    if(doc){
+                        res
+                            .status(200)
+                            .json(docRedact)
+                    } else {
+                        console.log('No Document Found')
+                    }
+
+                })
+                .catch(()=> handleError(res, 'Something went wrong.'))
+    }
+
+
 
     // } else {
 
@@ -211,9 +244,11 @@ app.delete('/lists/:id', (req, res) => {
 //Изменение записей...
 app.patch('/lists/:id', (req, res)=>{
 
-    console.log(`***************************\nreq:`)
+    // console.log(`***************************\nreq:`)
     // app.use(cookieParser());
-    console.log(req.cookies)
+    // console.log(req.cookies)
+    // console.log(req.headers)
+
     if(ObjectId.isValid(req.params.id)){
         db
             .collection('lists')
