@@ -3,9 +3,11 @@ const cors = require('cors')
 const { connectToDb, getDb } = require('./db');
 const {ObjectId} = require("mongodb");
 const {query} = require("express");
-const {generateToken} = require("./generToken");
+const {generateToken, changeAccessToken, changeRefreshToken} = require("./generToken");
 const cookieParser = require('cookie-parser');
 const { MongoClient } = require("mongodb");
+const {set} = require("express/lib/application");
+const domain = require("node:domain");
 
 
 const corsOptions = {
@@ -73,25 +75,39 @@ function decodeVallue(a){
 }
 
 // Обновление RefreshToken...
-async function changeRefreshToken(){
-    const url = "mongodb://localhost:27017"; // Укажите URI MongoDB
-    const client = new MongoClient(url);
-    await client.connect()
-    const database = client.db("to_do_list"); // Название базы данных
-    await database
-        .collection('lists')
-        .find()
-        .forEach(elem => {
-
-            database
-                .collection('lists')
-                .updateMany({email: elem.email}, {$set:{refreshToken:generateToken(41)}})
-            // console.log(`elem._id: ${elem._id}\nelem.refreshToken: ${elem.refreshToken}`);
-        })
-}
+// async function changeRefreshToken(){
+//     const url = "mongodb://localhost:27017"; // Укажите URI MongoDB
+//     const client = new MongoClient(url);
+//     await client.connect()
+//     const database = client.db("to_do_list"); // Название базы данных
+//     await database
+//         .collection('lists')
+//         .find()
+//         .forEach(elem => {
+//
+//             database
+//                 .collection('lists')
+//                 .updateMany({email: elem.email}, {$set:{refreshToken:generateToken(41)}})
+//             // console.log(`elem._id: ${elem._id}\nelem.refreshToken: ${elem.refreshToken}`);
+//         })
+// }
 // changeRefreshToken()
 // ...обновление RefreshToken
 
+// обновление токенов:
+const timeAccessTok = 900000 //15min
+const timeRefreshTok = 86400000 //24hours
+setInterval(()=>{
+    console.log('change access token')
+    changeAccessToken()
+}, timeAccessTok)
+
+setInterval(()=>{
+    console.log('change refresh token')
+    changeRefreshToken()
+}, timeRefreshTok)
+
+// ...обновление токенов
 
 
 //Добавление аккаунта:
@@ -240,14 +256,16 @@ app.delete('/lists/:id', (req, res) => {
 })
 //...удаление
 
-
 //Изменение записей...
 app.patch('/lists/:id', (req, res)=>{
 
-    // console.log(`***************************\nreq:`)
+    console.log(`***************************\nreq:`)
     // app.use(cookieParser());
-    // console.log(req.cookies)
-    // console.log(req.headers)
+    console.log(req.params)
+    console.log(`***************************\ncookies:`)
+    const cookies = Object.assign({}, req.cookies);
+    console.log(cookies); // Обычный объект
+    console.log(req.cookies['refreshToken'])
 
     if(ObjectId.isValid(req.params.id)){
         db
