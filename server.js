@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors')
 const { connectToDb, getDb } = require('./db');
 const {ObjectId} = require("mongodb");
-const {query} = require("express");
+const {query, json} = require("express");
 const {generateToken, changeAccessToken, changeRefreshToken} = require("./generToken");
 const cookieParser = require('cookie-parser');
 const { MongoClient } = require("mongodb");
@@ -147,11 +147,34 @@ app.post('/lists', (req, res) => {
     })
 //...добавление
 
+app.get('/lists/', (req, res) => {
+    // if(ObjectId.isValid(req.params.vallue)){
+    console.log('GET, no Vallue');
+
+    // document.cookie="EXPERIMENT=ExperVall"
+
+    let arr = []
+        db
+            .collection('lists')
+            .find()
+            .forEach(e=>arr.push(e))
+            .then((result) => {
+                // if (result)
+                    res
+                        .status(200)
+                        .json(arr)
+            })
+})
+
+
 //Аутитнтефикация...
 
 app.get('/lists/:vallue', (req, res) => {
     // if(ObjectId.isValid(req.params.vallue)){
     console.log(`req.params.vallue: ${req.params.vallue}`);
+    // document.cookie="EXPERIMENT=ExperVall"
+
+
 
     if (req.params.vallue.includes(' ')){
         db
@@ -168,6 +191,7 @@ app.get('/lists/:vallue', (req, res) => {
                     tasksList:doc.tasksList,
                     creatDat:doc.creatDat,
                     id:doc._id
+
                 }
 
 
@@ -214,25 +238,6 @@ app.get('/lists/:vallue', (req, res) => {
     }
 
 
-
-    // } else {
-
-    // handleError(res, 'Wrong id')
-
-    //     db
-    //         .collection('lists')
-    //         .findOne({email:req.params.vallue})
-    //         .then(doc => {
-    //             if(doc){
-    //                 res.json({message: `Email ${req.params.vallue} занято`,
-    //                 data:doc})
-    //             } else {
-    //                 res.status(404).json({ message: `Список с email ${req.params.vallue} не найден.` })
-    //             }
-    //         })
-    //         .catch(()=> handleError(res, 'Something went wrong.'))
-    //
-    // }
 })
 //...аутитнтефикация
 
@@ -257,7 +262,7 @@ app.delete('/lists/:id', (req, res) => {
 //...удаление
 
 //Изменение записей...
-app.patch('/lists/:id', (req, res)=>{
+app.patch('/lists/:at', (req, res)=>{
 
     console.log(`***************************\nreq:`)
     // app.use(cookieParser());
@@ -267,10 +272,10 @@ app.patch('/lists/:id', (req, res)=>{
     console.log(cookies); // Обычный объект
     console.log(req.cookies['refreshToken'])
 
-    if(ObjectId.isValid(req.params.id)){
+    // if(ObjectId.isValid(req.params.id)){
         db
             .collection('lists')
-            .updateOne({ _id: new ObjectId(req.params.id) }, {  $set: { tasksList: req.body } } )
+            .updateOne({ accessToken: req.params.at }, {  $set: { tasksList: req.body } } )
             // .updateMany({ email: req.params.id }, {  $set: { tasksList: req.body } } )
             .then((result)=>{
                 res
@@ -279,10 +284,10 @@ app.patch('/lists/:id', (req, res)=>{
             })
             .catch(()=> handleError(res, 'Something went wrong.'))
 
-    } else {
-        handleError(res, 'Del.Wrong id')
-
-    }
+    // } else {
+    //     handleError(res, 'Del.Wrong id')
+    //
+    // }
 
 })
 // ...изменение записей
