@@ -147,24 +147,24 @@ app.post('/lists', (req, res) => {
     })
 //...добавление
 
-app.get('/lists/', (req, res) => {
-    // if(ObjectId.isValid(req.params.vallue)){
-    console.log('GET, no Vallue');
-
-    // document.cookie="EXPERIMENT=ExperVall"
-
-    let arr = []
-        db
-            .collection('lists')
-            .find()
-            .forEach(e=>arr.push(e))
-            .then((result) => {
-                // if (result)
-                    res
-                        .status(200)
-                        .json(arr)
-            })
-})
+// app.get('/lists/', (req, res) => {
+//     // if(ObjectId.isValid(req.params.vallue)){
+//     console.log('GET, no Vallue');
+//
+//     // document.cookie="EXPERIMENT=ExperVall"
+//
+//     let arr = []
+//         db
+//             .collection('lists')
+//             .find()
+//             .forEach(e=>arr.push(e))
+//             .then((result) => {
+//                 // if (result)
+//                     res
+//                         .status(200)
+//                         .json(arr)
+//             })
+// })
 
 
 //Аутитнтефикация...
@@ -264,7 +264,7 @@ app.delete('/lists/:id', (req, res) => {
 //Изменение записей...
 app.patch('/lists/:at', (req, res)=>{
 
-    console.log(`***************************\nreq:`)
+    console.log(`############################\nreq:`)
     // app.use(cookieParser());
     console.log(req.params)
     console.log(`***************************\ncookies:`)
