@@ -147,26 +147,6 @@ app.post('/lists', (req, res) => {
     })
 //...добавление
 
-// app.get('/lists/', (req, res) => {
-//     // if(ObjectId.isValid(req.params.vallue)){
-//     console.log('GET, no Vallue');
-//
-//     // document.cookie="EXPERIMENT=ExperVall"
-//
-//     let arr = []
-//         db
-//             .collection('lists')
-//             .find()
-//             .forEach(e=>arr.push(e))
-//             .then((result) => {
-//                 // if (result)
-//                     res
-//                         .status(200)
-//                         .json(arr)
-//             })
-// })
-
-
 //Аутитнтефикация...
 
 app.get('/lists/:vallue', (req, res) => {
@@ -241,6 +221,25 @@ app.get('/lists/:vallue', (req, res) => {
 })
 //...аутитнтефикация
 
+// временно:
+app.get('/lists/', (req, res) => {
+
+    let arr = []
+        db
+            .collection('lists')
+            .find()
+            .forEach(elem => {
+                arr.push(elem)
+            })
+            .then((doc)=>{
+                    res
+                        .status(200)
+                        .json(arr)
+            })
+            .catch(()=> handleError(res, 'Something went wrong.'))
+
+})
+
 
 //Удаление:
 app.delete('/lists/:id', (req, res) => {
@@ -275,7 +274,7 @@ app.patch('/lists/:at', (req, res)=>{
     // if(ObjectId.isValid(req.params.id)){
         db
             .collection('lists')
-            .updateOne({ accessToken: req.params.at }, {  $set: { tasksList: req.body } } )
+            .updateOne({ accessToken: req.params.at}, {  $set: { tasksList: req.body } } )
             // .updateMany({ email: req.params.id }, {  $set: { tasksList: req.body } } )
             .then((result)=>{
                 res
@@ -292,80 +291,6 @@ app.patch('/lists/:at', (req, res)=>{
 })
 // ...изменение записей
 
-// console.log(generateToken(41))
-// const timer = setInterval(()=>{
-//     console.log(13)
-// },1000)
-
-// app.get('/lists/:email', async (req, res) => {
-    // try {
-    //     const listName = req.params.name; // Получаем значение параметра "name" из URL
-    //     const foundList = await db.collection('lists').findOne({ name: listName });
-    //
-    //     if (!foundList) {
-    //         return res.status(404).json({ message: `Список с именем ${listName} не найден.` });
-    //     }
-    //
-    //     // return res.json(foundList); // Возвращаем найденный список
-    //     return res.json({message: `Имя ${listName} занято`})
-    // } catch (error) {
-    //     handleError(res, 'Something went wrong.');
-    // }
-
-
-//     db
-//         .collection('lists')
-//         .findOne({email:req.params.email})
-//         .then(doc => {
-//             if(doc){
-//                 res.json({message: `Аккаунт ${req.params.email} найден`})
-//             } else {
-//                 res.status(404).json({ message: `Аккаунт ${req.params.email} не найден.` })
-//             }
-//         })
-//         .catch(()=> handleError(res, 'Something went wrong.'))
-//
-// });
-
-
-
-// app.get('/lists', (req, res) => {
-//     const lists = []
-//
-//     // console.log(req.params)
-//     // if(!req.params.vallue){
-//     //     console.log(req.params.vallue)
-//     //     return
-//     // }
-//     db
-//         .collection('lists')
-//         .find()
-//         .sort({ number: 1 })
-//         .forEach((list)=>{
-//             lists.push(list)
-//         })
-//         .then(()=>{
-//             res
-//                 .status(200)
-//                 .json(lists)
-//         })
-//         .catch(()=> handleError(res, 'Something went wrong.'))
-//
-// })
-
-// app.get('/lists/:id/Array', (req, res) => {
-//     // const lists = []
-//     db
-//         .collection('lists')
-//         .findOne({ _id: new ObjectId(req.params.id) })
-//         .then((doc)=>{
-//             res
-//                 .status(200)
-//                 .json(doc.Array)
-//         })
-//         .catch(()=> handleError(res, 'Something went wrong.'))
-//
-// })
 
 
 
@@ -377,56 +302,3 @@ app.patch('/lists/:at', (req, res)=>{
 
 
 
-
-
-
-// Изменение:
-// app.patch('/lists/:id', (req, res)=>{
-//
-//     if(ObjectId.isValid(req.params.id)){
-//         db
-//             .collection('lists')
-//             .updateOne({ _id: new ObjectId(req.params.id) }, {  $set : req.body } )
-//             .then((result)=>{
-//                 res
-//                     .status(200)
-//                     .json(result)
-//             })
-//             .catch(()=> handleError(res, 'Something went wrong.'))
-//
-//     } else {
-//         handleError(res, 'Del.Wrong id')
-//     }
-// })
-
-
-
-// app.post('/lists/', (req, res)=>{
-
-    // const lists = []
-    // db
-    //     .collection('lists')
-    //     .find()
-    //     .sort({ number: 1 })
-    //     .forEach((list)=>{lists.push(list.name)})
-    //
-    // console.log(lists)
-
-    // if(ObjectId.isValid(req.params.id)){
-    //     db
-    //         .collection('lists')
-    //         .updateOne({ _id: new ObjectId(req.params.id) }, {  $set : req.body } )
-    //         .then((result)=>{
-    //             res
-    //                 .status(200)
-    //                 .json(result)
-    //         })
-    //         .catch(()=> handleError(res, 'Something went wrong.'))
-    //
-    // } else {
-    //     handleError(res, 'Del.Wrong id')
-    // }
-// })
-
-
-// 111111111111111111
