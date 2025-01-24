@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors')
 const { connectToDb, getDb } = require('./db');
 const {ObjectId} = require("mongodb");
-const {query, json} = require("express");
+const {query, json, response} = require("express");
 const {generateToken, changeAccessToken, changeRefreshToken} = require("./generToken");
 const cookieParser = require('cookie-parser');
 const { MongoClient } = require("mongodb");
@@ -276,11 +276,20 @@ app.patch('/lists/:at', (req, res)=>{
             .collection('lists')
             .updateOne({ accessToken: req.params.at}, {  $set: { tasksList: req.body } } )
             // .updateMany({ email: req.params.id }, {  $set: { tasksList: req.body } } )
+
             .then((result)=>{
+                console.log(result)
                 res
                     .status(200)
                     .json(result)
             })
+            // .then(response=>{
+            //     if(response){
+            //         console.log('responseOK:',response)
+            //     } else {
+            //         console.log('responseBAD')
+            //     }
+            // })
             .catch(()=> handleError(res, 'Something went wrong.'))
 
     // } else {
