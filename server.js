@@ -113,8 +113,8 @@ app.get('/set-cookie', (req, res) => {
     // Устанавливаем cookie с именем "username" и значением "JohnDoe"
     res.cookie('username', 'JohnDoe', {
         maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
-        httpOnly: false, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-        secure: false, // Cookie будут отправляться только по HTTPS
+        httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+        secure: true, // Cookie будут отправляться только по HTTPS
         sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
     });
 
