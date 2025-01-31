@@ -109,6 +109,18 @@ setInterval(()=>{
 
 // ...обновление токенов
 
+app.get('/set-cookie', (req, res) => {
+    // Устанавливаем cookie с именем "username" и значением "JohnDoe"
+    res.cookie('username', 'JohnDoe', {
+        maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
+        httpOnly: false, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+        secure: false, // Cookie будут отправляться только по HTTPS
+        sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+    });
+
+    res.send('Cookie has been set!');
+});
+
 
 //Добавление аккаунта:
 app.post('/lists', (req, res) => {
@@ -241,6 +253,7 @@ app.get('/lists/', (req, res) => {
 })
 
 
+
 //Удаление:
 app.delete('/lists/:id', (req, res) => {
     if(ObjectId.isValid(req.params.id)){
@@ -269,7 +282,7 @@ app.patch('/lists/:at', (req, res)=>{
     console.log(`***************************\ncookies:`)
     const cookies = Object.assign({}, req.cookies);
     console.log(cookies); // Обычный объект
-    console.log(req.cookies['refreshToken'])
+    console.log(req.cookies['refreshToken', 'username'])
 
     // if(ObjectId.isValid(req.params.id)){
         db
