@@ -19,15 +19,6 @@ const corsOptions = {
 
 const PORT = 3000;
 
-///////////////////
-
-
-// const app = express();
-
-// Подключаем cookie-parser
-// app.use(cookieParser());
-///////////////////
-
 const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -109,17 +100,31 @@ setInterval(()=>{
 
 // ...обновление токенов
 
-app.get('/set-cookie', (req, res) => {
-    // Устанавливаем cookie с именем "username" и значением "JohnDoe"
-    res.cookie('username', 'JohnDoe', {
-        maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
-        httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-        secure: true, // Cookie будут отправляться только по HTTPS
-        sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-    });
+//установка cookie:
+// app.get('/set-cookie', (req, res) => {
+//     // Устанавливаем cookie с именем "username" и значением "JohnDoe"
+//     res.cookie('username', 'JohnDoe', {
+//         maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
+//         httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+//         secure: true, // Cookie будут отправляться только по HTTPS
+//         sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+//     });
+//
+//     res.send('Cookie has been set!');
+// });
 
-    res.send('Cookie has been set!');
-});
+//удаление cookie при выходе:
+// app.get('/del-cookie', (req, res) => {
+//     // Устанавливаем cookie с именем "username" и значением "JohnDoe"
+//     res.cookie('username', '', {
+//         maxAge: -1, // Время жизни cookie в миллисекундах (15 минут)
+//         httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+//         secure: true, // Cookie будут отправляться только по HTTPS
+//         sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+//     });
+//
+//     res.send('Cookie has been set!');
+// });
 
 
 //Добавление аккаунта:
@@ -160,7 +165,7 @@ app.post('/lists', (req, res) => {
 //...добавление
 
 //Аутитнтефикация...
-
+let refTok = '___'
 app.get('/lists/:vallue', (req, res) => {
     // if(ObjectId.isValid(req.params.vallue)){
     console.log(`req.params.vallue: ${req.params.vallue}`);
@@ -185,18 +190,45 @@ app.get('/lists/:vallue', (req, res) => {
                     id:doc._id
 
                 }
+                refTok = doc.refreshToken
 
 
                 if(doc){
                     res
                         .status(200)
                         .json(docRedact)
+
                 } else {
                     console.log('No Document Found')
                 }
 
             })
-            .catch(()=> handleError(res, 'Something went wrong.'))
+
+
+    }  else if(req.params.vallue.includes('set-cookie')){
+
+        console.log('set-cookie')
+        res.cookie('!!!!username', refTok, {
+            maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
+            httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+            secure: true, // Cookie будут отправляться только по HTTPS
+            sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+        });
+            res.send('Cookie has been set!');
+
+            // refTok='___'
+
+    } else if(req.params.vallue.includes('del-cookie')){
+        console.log('del-cookie')
+        res.cookie('!!!!username', '', {
+            maxAge: -1, // Время жизни cookie в миллисекундах (15 минут)
+            httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+            secure: true, // Cookie будут отправляться только по HTTPS
+            sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+        });
+
+        res.send('Cookie has been set!');
+
     } else {
 
         console.log(`accessToken: ${req.params.vallue}`)
