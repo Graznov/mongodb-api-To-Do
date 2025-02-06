@@ -8,6 +8,13 @@ const cookieParser = require('cookie-parser');
 const { MongoClient } = require("mongodb");
 const {set} = require("express/lib/application");
 const domain = require("node:domain");
+require('dotenv').config()
+
+// const secretKey = process.env.VERY_VERY_SECRET;
+// const port = process.env.PORT;
+//
+// console.log('Секретный ключ:', secretKey);
+// console.log('Приложение запущено на порту:', port);
 
 
 const corsOptions = {
@@ -169,6 +176,7 @@ let refTok = '___'
 app.get('/lists/:vallue', (req, res) => {
     // if(ObjectId.isValid(req.params.vallue)){
     console.log(`req.params.vallue: ${req.params.vallue}`);
+    // console.log(`req.params.vallue: ${req.header()}`);
     // document.cookie="EXPERIMENT=ExperVall"
 
 
@@ -267,6 +275,8 @@ app.get('/lists/:vallue', (req, res) => {
 
 // временно:
 app.get('/lists/', (req, res) => {
+
+    console.log(`req.header: ${req.headers['authorization']}`);
 
     let arr = []
         db

@@ -56,3 +56,27 @@ exports.changeAccessToken= changeAccessToken;
 // ...обновление accessToken
 
 
+/////////////////////////////////////////////////////////////////
+/////////// ДАЛЕЕ JWT:
+
+const jwt = require('jsonwebtoken');
+require('dotenv').config()
+
+
+// Секретный ключ — его нужно хранить в переменных окружения!
+// const secretKey = 'yourSecretKey';
+const secretKey = process.env.VERY_VERY_SECRET;
+
+// Функция для генерации токена
+function generateJWToken(user) {
+    // Payload — данные, которые ты хочешь сохранить в токене
+    const payload = { Number: user.id, String: user.username };
+
+    // Генерация токена
+    return jwt.sign(payload, secretKey, { expiresIn: '1h' }); // Токен истекает через 1 час
+}
+
+// Пример использования
+const user = { id: 777, username: 'Kapt. John V.' }; // Примерные данные пользователя
+const token = generateJWToken(user);
+console.log('Generated JWToken:', token);
