@@ -16,13 +16,13 @@ require('dotenv').config()
 // console.log('Секретный ключ:', secretKey);
 // console.log('Приложение запущено на порту:', port);
 
-
 const corsOptions = {
     origin: 'http://localhost:5173',  // Заменить на нужный домен или массив доменов или разрешить все домены '*'
     methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Разрешаем HTTP-методы
     allowedHeaders: ['Content-Type', 'Authorization'],  //Разрешаем заголовки
     credentials: true,              // Разрешить отправку куки и авторизационных данных
 };
+
 
 const PORT = 3000;
 
