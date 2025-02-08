@@ -93,17 +93,17 @@ function decodeVallue(a){
 // ...обновление RefreshToken
 
 // обновление токенов:
-const timeAccessTok = 900000 //15min
-const timeRefreshTok = 86400000 //24hours
-setInterval(()=>{
-    console.log('change access token')
-    changeAccessToken()
-}, timeAccessTok)
-
-setInterval(()=>{
-    console.log('change refresh token')
-    changeRefreshToken()
-}, timeRefreshTok)
+// const timeAccessTok = 900000 //15min
+// const timeRefreshTok = 86400000 //24hours
+// setInterval(()=>{
+    // console.log('change access token')
+    // changeAccessToken()
+// }, timeAccessTok)
+//
+// setInterval(()=>{
+//     console.log('change refresh token')
+//     changeRefreshToken()
+// }, timeRefreshTok)
 
 // ...обновление токенов
 
@@ -132,7 +132,6 @@ setInterval(()=>{
 //
 //     res.send('Cookie has been set!');
 // });
-
 
 //Добавление аккаунта:
 app.post('/lists', (req, res) => {
@@ -185,18 +184,21 @@ app.get('/lists/:vallue', (req, res) => {
 
 
     if (req.params.vallue.includes(' ')){
+
         db
             .collection('lists')
             .findOne({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] })
             .then((doc)=>{
+                db
+                    .collection('lists')
+                    .updateMany({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] }, {$set:{accessToken:generateAccessToken(doc._id, doc.name), refreshToken:generateRefreshToken(doc._id, doc.name)}})
 
-                console.log(`doc:${JSON.stringify(doc)}`)
+                // console.log(`doc:${JSON.stringify(doc)}`)
                 let docRedact = {
                     name:doc.name,
                     email:doc.email,
-                    // refreshToken:doc.refreshToken,
-                    // accessToken:doc.accessToken,
-                    accessToken:generateAccessToken(doc._id, doc.name),
+                    refreshToken:doc.refreshToken,
+                    accessToken:doc.accessToken,
                     tasksList:doc.tasksList,
                     creatDat:doc.creatDat,
                     id:doc._id
@@ -217,6 +219,7 @@ app.get('/lists/:vallue', (req, res) => {
             })
 
 
+
     }  else if(req.params.vallue.includes('set-cookie')){
 
         console.log('set-cookie')
@@ -232,7 +235,7 @@ app.get('/lists/:vallue', (req, res) => {
 
     } else if(req.params.vallue.includes('del-cookie')){
         console.log('del-cookie')
-        res.cookie('!!!!username', '', {
+        res.cookie('refreshToken', '', {
             maxAge: -1, // Время жизни cookie в миллисекундах (15 минут)
             httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
             secure: true, // Cookie будут отправляться только по HTTPS
