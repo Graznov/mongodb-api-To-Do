@@ -3,7 +3,7 @@ const cors = require('cors')
 const { connectToDb, getDb } = require('./db');
 const {ObjectId} = require("mongodb");
 const {query, json, response} = require("express");
-const {generateToken, changeAccessToken, changeRefreshToken} = require("./generToken");
+const {generateToken, changeAccessToken, changeRefreshToken, generateAccessToken, generateRefreshToken} = require("./generToken");
 const cookieParser = require('cookie-parser');
 const { MongoClient } = require("mongodb");
 const {set} = require("express/lib/application");
@@ -156,10 +156,13 @@ app.post('/lists', (req, res) => {
                     .insertOne(req.body)
                     .then((result)=>{
                         db.collection('lists').updateOne({ _id: result.insertedId }, {
-                                $set: { refreshToken: generateToken(41),
-                                accessToken: generateToken(13),
-                                creatDat: new Date(),
-                                tasksList:[]} }) //добавление токена и даты создания
+                                $set: {
+                                    // refreshToken: generateToken(41),
+                                    // accessToken: generateToken(13),
+                                    // refreshToken: '',
+                                    accessToken: '',
+                                    creatDat: new Date(),
+                                    tasksList:[]} }) //добавление токена и даты создания
                         res
                             .status(201)
                             .json("Created")
@@ -191,14 +194,15 @@ app.get('/lists/:vallue', (req, res) => {
                 let docRedact = {
                     name:doc.name,
                     email:doc.email,
-                    refreshToken:doc.refreshToken,
-                    accessToken:doc.accessToken,
+                    // refreshToken:doc.refreshToken,
+                    // accessToken:doc.accessToken,
+                    accessToken:generateAccessToken(doc._id, doc.name),
                     tasksList:doc.tasksList,
                     creatDat:doc.creatDat,
                     id:doc._id
 
                 }
-                refTok = doc.refreshToken
+                refTok = generateRefreshToken(doc._id, doc.name)
 
 
                 if(doc){
@@ -216,7 +220,7 @@ app.get('/lists/:vallue', (req, res) => {
     }  else if(req.params.vallue.includes('set-cookie')){
 
         console.log('set-cookie')
-        res.cookie('!!!!username', refTok, {
+        res.cookie('refreshToken', refTok, {
             maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
             httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
             secure: true, // Cookie будут отправляться только по HTTPS
