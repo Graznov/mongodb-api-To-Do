@@ -187,13 +187,15 @@ app.get('/lists/:vallue', (req, res) => {
 
         db
             .collection('lists')
+            .updateMany({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] },
+                {$set:{accessToken:generateAccessToken(doc._id, doc.name),
+                        refreshToken:generateRefreshToken(doc._id, doc.name)}})
+
+        db
+            .collection('lists')
             .findOne({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] })
             .then((doc)=>{
-                db
-                    .collection('lists')
-                    .updateMany({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] },
-                        {$set:{accessToken:generateAccessToken(doc._id, doc.name),
-                                refreshToken:generateRefreshToken(doc._id, doc.name)}})
+
 
                 // console.log(`doc:${JSON.stringify(doc)}`)
                 let docRedact = {
@@ -206,7 +208,9 @@ app.get('/lists/:vallue', (req, res) => {
                     id:doc._id
 
                 }
-                refTok = generateRefreshToken(doc._id, doc.name)
+                // refTok = generateRefreshToken(doc._id, doc.name)
+                refTok = docRedact.refreshToken
+                console.log(`docRedact: `, docRedact)
 
 
                 if(doc){
