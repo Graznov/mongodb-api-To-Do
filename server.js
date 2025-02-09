@@ -158,7 +158,7 @@ app.post('/lists', (req, res) => {
                                 $set: {
                                     // refreshToken: generateToken(41),
                                     // accessToken: generateToken(13),
-                                    // refreshToken: '',
+                                    refreshToken: '',
                                     accessToken: '',
                                     creatDat: new Date(),
                                     tasksList:[]} }) //добавление токена и даты создания
@@ -191,7 +191,9 @@ app.get('/lists/:vallue', (req, res) => {
             .then((doc)=>{
                 db
                     .collection('lists')
-                    .updateMany({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] }, {$set:{accessToken:generateAccessToken(doc._id, doc.name), refreshToken:generateRefreshToken(doc._id, doc.name)}})
+                    .updateMany({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] },
+                        {$set:{accessToken:generateAccessToken(doc._id, doc.name),
+                                refreshToken:generateRefreshToken(doc._id, doc.name)}})
 
                 // console.log(`doc:${JSON.stringify(doc)}`)
                 let docRedact = {
