@@ -181,15 +181,25 @@ app.get('/lists/:vallue', (req, res) => {
     // console.log(`req.params.vallue: ${req.header()}`);
     // document.cookie="EXPERIMENT=ExperVall"
 
-
-
     if (req.params.vallue.includes(' ')){
+
+        let name = ''
+        let id = ''
+
+        db
+            .collection('lists')
+            .findOne({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] })
+            .then(doc=>{
+                name=doc.name
+                id=doc._id
+            })
 
         db
             .collection('lists')
             .updateMany({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] },
-                {$set:{accessToken:generateAccessToken(doc._id, doc.name),
-                        refreshToken:generateRefreshToken(doc._id, doc.name)}})
+                        {$set:{accessToken:generateAccessToken(id, name),
+                            refreshToken:generateRefreshToken(id, name)}})
+
 
         db
             .collection('lists')
