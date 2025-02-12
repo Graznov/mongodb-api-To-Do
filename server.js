@@ -50,27 +50,27 @@ const handleError = (res, error) => {
     res.status(500).json({ error })
 }
 
-function decodeVallue(a){
-
-    let form = {
-        email:'',
-        pass:''
-    }
-    let spase = false
-
-    a.split('').forEach((el) => {
-        if (el === ' ') spase = true;
-        if (!spase ) {
-            form.email += el
-        } else if(spase && el !== ' ') {
-            form.pass += el
-        }
-    })
-
-    // console.log(`email: ${form.email.split('')}\npass: ${form.pass.split('')}`)
-    return [form.email, form.pass]
-
-}
+// function decodeVallue(a){
+//
+//     let form = {
+//         email:'',
+//         pass:''
+//     }
+//     let spase = false
+//
+//     a.split('').forEach((el) => {
+//         if (el === ' ') spase = true;
+//         if (!spase ) {
+//             form.email += el
+//         } else if(spase && el !== ' ') {
+//             form.pass += el
+//         }
+//     })
+//
+//     // console.log(`email: ${form.email.split('')}\npass: ${form.pass.split('')}`)
+//     return [form.email, form.pass]
+//
+// }
 
 // Обновление RefreshToken...
 // async function changeRefreshToken(){
@@ -170,42 +170,62 @@ app.post('/lists/login', (req, res) => {
 
     console.log(`email: ${ email }\npassword: ${ password }`);
 
-    db
+
+    let id = '' //вытягиваем _id записи в БД для JWT
+
+        db.collection('lists').findOne({ email: email, password: password })
+            .then((doc)=>{
+                console.log(`doc._id: ${doc._id}.`);
+                if(doc){
+                    id=doc._id;
+                } else {
+                    console.log(`NO DOC`)
+                }
+            })
+
+
+
+
+
+
+    // console.log(`id: ${id}`)
+
+    let at = generateAccessToken(id, email) //генерируем токены
+    let rt = generateRefreshToken(id, email) //генерируем токены
+
+    db //записываем токены в БД
         .collection('lists')
-        .findOne({ email: email, password: password })
-        .then((doc)=>{
-            // console.log(`doc:${JSON.stringify(doc)}`)
+        .updateMany({ email: email, password: password },
+            {$set:{accessToken:at,
+                    refreshToken:rt}})
 
-            if(doc){
-                db
-                    .collection('lists')
-                    .updateMany({ email: email, password: password },
-                        {$set:{accessToken:generateAccessToken(doc._id, doc.email),
-                                refreshToken:generateRefreshToken(doc._id, doc.email)}})
+    res.cookie('refreshToken', rt, { //ставим на фронт refreshToken
+        maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
+        httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+        secure: true, // Cookie будут отправляться только по HTTPS
+        sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+    })
 
-
-
-                res
-                    .status(200)
-                    .json(doc.accessToken)
-
-                console.log('set-cookie')
-
-                // res.cookie('refreshToken', doc.refreshToken), {
-                //     maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
-                //     httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                //     secure: true, // Cookie будут отправляться только по HTTPS
-                //     sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-                // }
-                // res.send('Cookie has been set!');
-            }
-
-        })
+    res //отправляем на фронт accessToken
+        .status(200)
+        .json(at)
 
 });
 
+app.post('/lists/del-cookie', (req, res) => {
+    console.log(`Del cookie`)
+    res.cookie('refreshToken', '', {
+            maxAge: -1, // Время жизни cookie в миллисекундах (15 минут)
+            httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+            secure: true, // Cookie будут отправляться только по HTTPS
+            sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+        });
+    res.send('Cookie has been set!');
+}); //удаление Cookie с фронта при выходе из аккаунта
 
 //...добавление и аутентификация
+
+
 
 //Аутитнтефикация...
 
@@ -333,25 +353,25 @@ app.post('/lists/login', (req, res) => {
 //...аутитнтефикация
 
 // временно:
-// app.get('/lists/', (req, res) => {
-//
-//     console.log(`req.header: ${req.headers['authorization']}`);
-//
-//     let arr = []
-//         db
-//             .collection('lists')
-//             .find()
-//             .forEach(elem => {
-//                 arr.push(elem)
-//             })
-//             .then((doc)=>{
-//                     res
-//                         .status(200)
-//                         .json(arr)
-//             })
-//             .catch(()=> handleError(res, 'Something went wrong.'))
-//
-// })
+app.get('/lists/', (req, res) => {
+
+    console.log(`req.header: ${req.headers['authorization']}`);
+
+    let arr = []
+        db
+            .collection('lists')
+            .find()
+            .forEach(elem => {
+                arr.push(elem)
+            })
+            .then((doc)=>{
+                    res
+                        .status(200)
+                        .json(arr)
+            })
+            .catch(()=> handleError(res, 'Something went wrong.'))
+
+})
 
 
 
