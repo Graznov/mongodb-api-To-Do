@@ -133,31 +133,25 @@ function decodeVallue(a){
 //     res.send('Cookie has been set!');
 // });
 
-//Добавление аккаунта:
-app.post('/lists', (req, res) => {
-
+//Добавление аккаунта и аутентификация:
+app.post('/lists/register', (req, res) => {
     db
         .collection('lists')
         .findOne( { email:req.body.email } )
         .then(doc => {
             if(doc){
                 console.log(1, `Email ${req.body.email} занято`)
-
                         res
                             .status(409)
                             .json('имя занято')
-
             } else {
                 console.log(2, `Email ${req.body.email} свободно`)
-
                 db
                     .collection('lists')
                     .insertOne(req.body)
                     .then((result)=>{
                         db.collection('lists').updateOne({ _id: result.insertedId }, {
                                 $set: {
-                                    // refreshToken: generateToken(41),
-                                    // accessToken: generateToken(13),
                                     refreshToken: '',
                                     accessToken: '',
                                     creatDat: new Date(),
@@ -167,155 +161,197 @@ app.post('/lists', (req, res) => {
                             .json("Created")
                     })
             }
-
         })
         .catch(()=> handleError(res, 'Something went wrong.'))
     })
-//...добавление
+
+app.post('/lists/login', (req, res) => {
+    const { email, password } = req.body;
+
+    console.log(`email: ${ email }\npassword: ${ password }`);
+
+    db
+        .collection('lists')
+        .findOne({ email: email, password: password })
+        .then((doc)=>{
+            // console.log(`doc:${JSON.stringify(doc)}`)
+
+            if(doc){
+                db
+                    .collection('lists')
+                    .updateMany({ email: email, password: password },
+                        {$set:{accessToken:generateAccessToken(doc._id, doc.email),
+                                refreshToken:generateRefreshToken(doc._id, doc.email)}})
+
+
+
+                res
+                    .status(200)
+                    .json(doc.accessToken)
+
+                console.log('set-cookie')
+
+                // res.cookie('refreshToken', doc.refreshToken), {
+                //     maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
+                //     httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+                //     secure: true, // Cookie будут отправляться только по HTTPS
+                //     sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+                // }
+                // res.send('Cookie has been set!');
+            }
+
+        })
+
+});
+
+
+//...добавление и аутентификация
 
 //Аутитнтефикация...
-let refTok = '___'
-app.get('/lists/:vallue', (req, res) => {
-    // if(ObjectId.isValid(req.params.vallue)){
-    console.log(`req.params.vallue: ${req.params.vallue}`);
-    // console.log(`req.params.vallue: ${req.header()}`);
-    // document.cookie="EXPERIMENT=ExperVall"
-
-    if (req.params.vallue.includes(' ')){
-
-        let name = ''
-        let id = ''
-
-        db
-            .collection('lists')
-            .findOne({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] })
-            .then(doc=>{
-                name=doc.name
-                id=doc._id
-            })
-
-        db
-            .collection('lists')
-            .updateMany({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] },
-                        {$set:{accessToken:generateAccessToken(id, name),
-                            refreshToken:generateRefreshToken(id, name)}})
-
-
-        db
-            .collection('lists')
-            .findOne({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] })
-            .then((doc)=>{
-
-
-                // console.log(`doc:${JSON.stringify(doc)}`)
-                let docRedact = {
-                    name:doc.name,
-                    email:doc.email,
-                    refreshToken:doc.refreshToken,
-                    accessToken:doc.accessToken,
-                    tasksList:doc.tasksList,
-                    creatDat:doc.creatDat,
-                    id:doc._id
-
-                }
-                // refTok = generateRefreshToken(doc._id, doc.name)
-                refTok = docRedact.refreshToken
-                console.log(`docRedact: `, docRedact)
-
-
-                if(doc){
-                    res
-                        .status(200)
-                        .json(docRedact)
-
-                } else {
-                    console.log('No Document Found')
-                }
-
-            })
 
 
 
-    }  else if(req.params.vallue.includes('set-cookie')){
-
-        console.log('set-cookie')
-        res.cookie('refreshToken', refTok, {
-            maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
-            httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-            secure: true, // Cookie будут отправляться только по HTTPS
-            sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-        });
-            res.send('Cookie has been set!');
-
-            // refTok='___'
-
-    } else if(req.params.vallue.includes('del-cookie')){
-        console.log('del-cookie')
-        res.cookie('refreshToken', '', {
-            maxAge: -1, // Время жизни cookie в миллисекундах (15 минут)
-            httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-            secure: true, // Cookie будут отправляться только по HTTPS
-            sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-        });
-
-        res.send('Cookie has been set!');
-
-    } else {
-
-        console.log(`accessToken: ${req.params.vallue}`)
-            db
-                .collection('lists')
-                .findOne({ accessToken: req.params.vallue})
-                .then((doc)=>{
-
-                    console.log(`doc:${JSON.stringify(doc)}`)
-                    let docRedact = {
-                        name:doc.name,
-                        email:doc.email,
-                        refreshToken:doc.refreshToken,
-                        accessToken:doc.accessToken,
-                        tasksList:doc.tasksList,
-                        creatDat:doc.creatDat,
-                        id:doc._id
-                    }
-
-
-                    if(doc){
-                        res
-                            .status(200)
-                            .json(docRedact)
-                    } else {
-                        console.log('No Document Found')
-                    }
-
-                })
-                .catch(()=> handleError(res, 'Something went wrong.'))
-    }
-
-
-})
+// app.get('/lists/:vallue', (req, res) => {
+//     // if(ObjectId.isValid(req.params.vallue)){
+//     console.log(`req.params.vallue: ${req.params.vallue}`);
+//     let refTok = '___'
+//     // console.log(`req.params.vallue: ${req.header()}`);
+//     // document.cookie="EXPERIMENT=ExperVall"
+//
+//     if (req.params.vallue.includes(' ')){
+//
+//         let name = ''
+//         let id = ''
+//
+//         db
+//             .collection('lists')
+//             .findOne({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] })
+//             .then(doc=>{
+//                 name=doc.name
+//                 id=doc._id
+//             })
+//
+//         db
+//             .collection('lists')
+//             .updateMany({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] },
+//                         {$set:{accessToken:generateAccessToken(id, name),
+//                             refreshToken:generateRefreshToken(id, name)}})
+//
+//
+//         db
+//             .collection('lists')
+//             .findOne({ email: decodeVallue(req.params.vallue)[0], password: decodeVallue(req.params.vallue)[1] })
+//             .then((doc)=>{
+//
+//
+//                 // console.log(`doc:${JSON.stringify(doc)}`)
+//                 let docRedact = {
+//                     // name:doc.name,
+//                     // email:doc.email,
+//                     refreshToken:doc.refreshToken,
+//                     accessToken:doc.accessToken,
+//                     // tasksList:doc.tasksList,
+//                     // creatDat:doc.creatDat,
+//                     // id:doc._id
+//                 }
+//                 // refTok = generateRefreshToken(doc._id, doc.name)
+//                 refTok = docRedact.refreshToken
+//                 console.log(`docRedact: `, docRedact)
+//
+//
+//                 if(doc){
+//                     res
+//                         .status(200)
+//                         .json(docRedact)
+//
+//                 } else {
+//                     console.log('No Document Found')
+//                 }
+//
+//             })
+//
+//
+//
+//     }  else if(req.params.vallue.includes('set-cookie')){
+//
+//         console.log('set-cookie')
+//         res.cookie('refreshToken', refTok, {
+//             maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
+//             httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+//             secure: true, // Cookie будут отправляться только по HTTPS
+//             sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+//         });
+//             res.send('Cookie has been set!');
+//
+//             // refTok='___'
+//
+//     } else if(req.params.vallue.includes('del-cookie')){
+//         console.log('del-cookie')
+//         res.cookie('refreshToken', '', {
+//             maxAge: -1, // Время жизни cookie в миллисекундах (15 минут)
+//             httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+//             secure: true, // Cookie будут отправляться только по HTTPS
+//             sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+//         });
+//
+//         res.send('Cookie has been set!');
+//
+//     } else {
+//
+//         console.log(`accessToken: ${req.params.vallue}`)
+//             db
+//                 .collection('lists')
+//                 .findOne({ accessToken: req.params.vallue})
+//                 .then((doc)=>{
+//
+//                     console.log(`doc:${JSON.stringify(doc)}`)
+//                     let docRedact = {
+//                         name:doc.name,
+//                         email:doc.email,
+//                         refreshToken:doc.refreshToken,
+//                         accessToken:doc.accessToken,
+//                         tasksList:doc.tasksList,
+//                         creatDat:doc.creatDat,
+//                         id:doc._id
+//                     }
+//
+//
+//                     if(doc){
+//                         res
+//                             .status(200)
+//                             .json(docRedact)
+//                     } else {
+//                         console.log('No Document Found')
+//                     }
+//
+//                 })
+//                 .catch(()=> handleError(res, 'Something went wrong.'))
+//     }
+//
+//
+// })
 //...аутитнтефикация
 
 // временно:
-app.get('/lists/', (req, res) => {
-
-    console.log(`req.header: ${req.headers['authorization']}`);
-
-    let arr = []
-        db
-            .collection('lists')
-            .find()
-            .forEach(elem => {
-                arr.push(elem)
-            })
-            .then((doc)=>{
-                    res
-                        .status(200)
-                        .json(arr)
-            })
-            .catch(()=> handleError(res, 'Something went wrong.'))
-
-})
+// app.get('/lists/', (req, res) => {
+//
+//     console.log(`req.header: ${req.headers['authorization']}`);
+//
+//     let arr = []
+//         db
+//             .collection('lists')
+//             .find()
+//             .forEach(elem => {
+//                 arr.push(elem)
+//             })
+//             .then((doc)=>{
+//                     res
+//                         .status(200)
+//                         .json(arr)
+//             })
+//             .catch(()=> handleError(res, 'Something went wrong.'))
+//
+// })
 
 
 
@@ -339,28 +375,47 @@ app.delete('/lists/:id', (req, res) => {
 //...удаление
 
 //Изменение записей...
-app.patch('/lists/:at', (req, res)=>{
+app.patch('/lists/:email', (req, res)=>{
 
-    console.log(`############################\nreq:`)
-    // app.use(cookieParser());
-    console.log(req.params)
-    console.log(`***************************\ncookies:`)
-    const cookies = Object.assign({}, req.cookies);
-    console.log(cookies); // Обычный объект
-    console.log(req.cookies['refreshToken', 'username'])
+    // console.log(`############################\nreq:`)
+    // // app.use(cookieParser());
+    // console.log(req.params)
+    // console.log(`***************************\ncookies:`)
+    // const cookies = Object.assign({}, req.cookies);
+    // console.log(cookies); // Обычный объект
+    // console.log(req.cookies['refreshToken', 'username'])
+
+    const authHeader = req.headers['authorization'];
+    console.log(authHeader)
+
+    db
+        .collection('lists')
+        .findOne({ email: req.params.email})
+        .then((doc)=>{
+
+            if(doc){
+                if(doc.accessToken===authHeader){
+                    console.log('TOKEN OK')
+                    db
+                        .collection('lists')
+                        // .updateOne({ accessToken: req.params.at}, {  $set: { tasksList: req.body } } )
+                        .updateMany({ email: req.params.email }, {  $set: { tasksList: req.body } } )
+
+                        .then((result)=>{
+                            console.log(result)
+                            res
+                                .status(200)
+                                .json(result)
+                        })
+                } else {
+                    console.log('TOKEN ERROR!!!')
+                }
+            }
+
+        })
 
     // if(ObjectId.isValid(req.params.id)){
-        db
-            .collection('lists')
-            .updateOne({ accessToken: req.params.at}, {  $set: { tasksList: req.body } } )
-            // .updateMany({ email: req.params.id }, {  $set: { tasksList: req.body } } )
 
-            .then((result)=>{
-                console.log(result)
-                res
-                    .status(200)
-                    .json(result)
-            })
             // .then(response=>{
             //     if(response){
             //         console.log('responseOK:',response)
