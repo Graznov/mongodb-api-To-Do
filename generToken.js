@@ -73,7 +73,7 @@ const secretRefreshKey = process.env.VERY_VERY_SECRET_FOR_REFRESH;
 function generateAccessToken(a, b) {
     // Payload — данные, которые ты хочешь сохранить в токене
     const payload = { id: a, email: b };
-    console.log(`AT`)
+    console.log(`Run generateAccessToken(a, b)`)
     // Генерация токена
     return jwt.sign(payload, secretAccessKey, { expiresIn: '10m' }); // Токен истекает через 1 час
 }
@@ -82,7 +82,7 @@ function generateRefreshToken(a, b) {
     // Payload — данные, которые ты хочешь сохранить в токене
     const payload = { id: a, email: b };
 
-    console.log(`RT`)
+    console.log(`Run generateRefreshToken(a, b)`)
     // Генерация токена
     return jwt.sign(payload, secretRefreshKey, { expiresIn: '30m' }); // Токен истекает через 1 час
 }

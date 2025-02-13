@@ -50,89 +50,6 @@ const handleError = (res, error) => {
     res.status(500).json({ error })
 }
 
-// function decodeVallue(a){
-//
-//     let form = {
-//         email:'',
-//         pass:''
-//     }
-//     let spase = false
-//
-//     a.split('').forEach((el) => {
-//         if (el === ' ') spase = true;
-//         if (!spase ) {
-//             form.email += el
-//         } else if(spase && el !== ' ') {
-//             form.pass += el
-//         }
-//     })
-//
-//     // console.log(`email: ${form.email.split('')}\npass: ${form.pass.split('')}`)
-//     return [form.email, form.pass]
-//
-// }
-
-// Обновление RefreshToken...
-// async function changeRefreshToken(){
-//     const url = "mongodb://localhost:27017"; // Укажите URI MongoDB
-//     const client = new MongoClient(url);
-//     await client.connect()
-//     const database = client.db("to_do_list"); // Название базы данных
-//     await database
-//         .collection('lists')
-//         .find()
-//         .forEach(elem => {
-//
-//             database
-//                 .collection('lists')
-//                 .updateMany({email: elem.email}, {$set:{refreshToken:generateToken(41)}})
-//             // console.log(`elem._id: ${elem._id}\nelem.refreshToken: ${elem.refreshToken}`);
-//         })
-// }
-// changeRefreshToken()
-// ...обновление RefreshToken
-
-// обновление токенов:
-// const timeAccessTok = 900000 //15min
-// const timeRefreshTok = 86400000 //24hours
-// setInterval(()=>{
-    // console.log('change access token')
-    // changeAccessToken()
-// }, timeAccessTok)
-//
-// setInterval(()=>{
-//     console.log('change refresh token')
-//     changeRefreshToken()
-// }, timeRefreshTok)
-
-// ...обновление токенов
-
-//установка cookie:
-// app.get('/set-cookie', (req, res) => {
-//     // Устанавливаем cookie с именем "username" и значением "JohnDoe"
-//     res.cookie('username', 'JohnDoe', {
-//         maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
-//         httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-//         secure: true, // Cookie будут отправляться только по HTTPS
-//         sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-//     });
-//
-//     res.send('Cookie has been set!');
-// });
-
-//удаление cookie при выходе:
-// app.get('/del-cookie', (req, res) => {
-//     // Устанавливаем cookie с именем "username" и значением "JohnDoe"
-//     res.cookie('username', '', {
-//         maxAge: -1, // Время жизни cookie в миллисекундах (15 минут)
-//         httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-//         secure: true, // Cookie будут отправляться только по HTTPS
-//         sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-//     });
-//
-//     res.send('Cookie has been set!');
-// });
-
 //Добавление аккаунта и аутентификация:
 app.post('/lists/register', (req, res) => {
     db
@@ -141,9 +58,9 @@ app.post('/lists/register', (req, res) => {
         .then(doc => {
             if(doc){
                 console.log(1, `Email ${req.body.email} занято`)
-                        res
-                            .status(409)
-                            .json('имя занято')
+                res
+                    .status(409)
+                    .json('имя занято')
             } else {
                 console.log(2, `Email ${req.body.email} свободно`)
                 db
@@ -151,11 +68,11 @@ app.post('/lists/register', (req, res) => {
                     .insertOne(req.body)
                     .then((result)=>{
                         db.collection('lists').updateOne({ _id: result.insertedId }, {
-                                $set: {
-                                    refreshToken: '',
-                                    accessToken: '',
-                                    creatDat: new Date(),
-                                    tasksList:[]} }) //добавление токена и даты создания
+                            $set: {
+                                refreshToken: '',
+                                accessToken: '',
+                                creatDat: new Date(),
+                                tasksList:[]} }) //добавление токена и даты создания
                         res
                             .status(201)
                             .json("Created")
@@ -163,63 +80,58 @@ app.post('/lists/register', (req, res) => {
             }
         })
         .catch(()=> handleError(res, 'Something went wrong.'))
-    })
+})
 
-app.post('/lists/login', (req, res) => {
+app.post('/lists/login', async (req, res) => {
     const { email, password } = req.body;
 
     console.log(`email: ${ email }\npassword: ${ password }`);
 
+    try{
+        const user = await db.collection('lists').findOne({ email: email, password: password });
+        if(!user) return res.status(400).json({ message: 'Пользователь не найден' })
+        console.log(user)
 
-    let id = '' //вытягиваем _id записи в БД для JWT
+        const accessToken = generateAccessToken(user._id, email);
+        const refreshToken = generateRefreshToken(user._id, email);
 
-        db.collection('lists').findOne({ email: email, password: password })
-            .then((doc)=>{
-                console.log(`doc._id: ${doc._id}.`);
-                if(doc){
-                    id=doc._id;
-                } else {
-                    console.log(`NO DOC`)
-                }
-            })
+        await db.collection('lists').updateOne(
+            { _id: user._id },
+            { $set: { accessToken: accessToken, refreshToken: refreshToken } }
+        );
 
+        const responseData = {
+            email: user.email,
+            accessToken: accessToken,
+            id: user._id,
+            name: user.name
+        };
 
+        res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
+            maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
+            httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+            secure: true, // Cookie будут отправляться только по HTTPS
+            sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+        })
 
+        res.status(200).json(responseData);
+        console.log(`Данные отправлены:\n${JSON.stringify(responseData)}`);
 
-
-
-    // console.log(`id: ${id}`)
-
-    let at = generateAccessToken(id, email) //генерируем токены
-    let rt = generateRefreshToken(id, email) //генерируем токены
-
-    db //записываем токены в БД
-        .collection('lists')
-        .updateMany({ email: email, password: password },
-            {$set:{accessToken:at,
-                    refreshToken:rt}})
-
-    res.cookie('refreshToken', rt, { //ставим на фронт refreshToken
-        maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
-        httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-        secure: true, // Cookie будут отправляться только по HTTPS
-        sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-    })
-
-    res //отправляем на фронт accessToken
-        .status(200)
-        .json(at)
+    } catch (e) {
+        console.error('Ошибка при входе:', error);
+        res.status(500).json({ message: 'Ошибка сервера' });
+    }
 
 });
 
 app.post('/lists/del-cookie', (req, res) => {
     console.log(`Del cookie`)
     res.cookie('refreshToken', '', {
-            maxAge: -1, // Время жизни cookie в миллисекундах (15 минут)
-            httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-            secure: true, // Cookie будут отправляться только по HTTPS
-            sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-        });
+        maxAge: -1, // Время жизни cookie в миллисекундах (15 минут)
+        httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+        secure: true, // Cookie будут отправляться только по HTTPS
+        sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+    });
     res.send('Cookie has been set!');
 }); //удаление Cookie с фронта при выходе из аккаунта
 
@@ -358,18 +270,18 @@ app.get('/lists/', (req, res) => {
     console.log(`req.header: ${req.headers['authorization']}`);
 
     let arr = []
-        db
-            .collection('lists')
-            .find()
-            .forEach(elem => {
-                arr.push(elem)
-            })
-            .then((doc)=>{
-                    res
-                        .status(200)
-                        .json(arr)
-            })
-            .catch(()=> handleError(res, 'Something went wrong.'))
+    db
+        .collection('lists')
+        .find()
+        .forEach(elem => {
+            arr.push(elem)
+        })
+        .then((doc)=>{
+            res
+                .status(200)
+                .json(arr)
+        })
+        .catch(()=> handleError(res, 'Something went wrong.'))
 
 })
 
@@ -434,16 +346,16 @@ app.patch('/lists/:email', (req, res)=>{
 
         })
 
-    // if(ObjectId.isValid(req.params.id)){
+        // if(ObjectId.isValid(req.params.id)){
 
-            // .then(response=>{
-            //     if(response){
-            //         console.log('responseOK:',response)
-            //     } else {
-            //         console.log('responseBAD')
-            //     }
-            // })
-            .catch(()=> handleError(res, 'Something went wrong.'))
+        // .then(response=>{
+        //     if(response){
+        //         console.log('responseOK:',response)
+        //     } else {
+        //         console.log('responseBAD')
+        //     }
+        // })
+        .catch(()=> handleError(res, 'Something went wrong.'))
 
     // } else {
     //     handleError(res, 'Del.Wrong id')
@@ -452,8 +364,6 @@ app.patch('/lists/:email', (req, res)=>{
 
 })
 // ...изменение записей
-
-
 
 
 
