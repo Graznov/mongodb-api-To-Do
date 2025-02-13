@@ -3,12 +3,15 @@ const cors = require('cors')
 const { connectToDb, getDb } = require('./db');
 const {ObjectId} = require("mongodb");
 const {query, json, response} = require("express");
-const {generateToken, changeAccessToken, changeRefreshToken, generateAccessToken, generateRefreshToken} = require("./generToken");
+const {generateToken, changeAccessToken, changeRefreshToken, generateAccessToken, generateRefreshToken, verifyJWT} = require("./generToken");
 const cookieParser = require('cookie-parser');
 const { MongoClient } = require("mongodb");
 const {set} = require("express/lib/application");
 const domain = require("node:domain");
+const {verify} = require("jsonwebtoken");
 require('dotenv').config()
+const jwt = require('jsonwebtoken');
+
 
 // const secretKey = process.env.VERY_VERY_SECRET;
 // const port = process.env.PORT;
@@ -139,7 +142,60 @@ app.post('/lists/del-cookie', (req, res) => {
 
 
 
-//Аутитнтефикация...
+//
+
+app.get('/lists/:id', async (req, res) => {
+
+    const accessToken = req.headers['authorization'];
+    const cookies = Object.assign({}, req.cookies);
+    const refreshToken = cookies.refreshToken
+    // console.log(`cookies:\n${cookies.refreshToken}`); // Обычный объект
+    // console.log(`authHeader:\n${accessToken}`)
+    // console.log(req.params.id)
+
+    try{
+        const user = await db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
+        // console.log(`user:\n${JSON.stringify(user)}`
+        if(!user) return res.status(400).json({message: 'Пользователь не найден'})
+
+        if(verifyJWT(accessToken, process.env.VERY_VERY_SECRET_FOR_ACCESS)){
+            console.log(`TOKEN GOOD`)
+        } else {
+
+            if(verifyJWT(refreshToken, process.env.VERY_VERY_SECRET_FOR_REFRESH)){
+                console.log(`refreshToken GOOD`)
+
+                //тут смена токенов!!!
+            } else{
+
+                //refreshToken неверен, нужно перелогиниться
+                return res.status(400).json({ message:'Токен не совпадает'})
+            }
+
+
+        }
+
+
+
+        const responseUser = {
+            // id: user._id,
+            name: user.name,
+            // email: user.email,
+            // creatDat: user.creatDat,
+            tasks: user.tasksList
+        }
+
+
+        res.status(200).json(responseUser)
+
+
+    } catch (e) {
+        console.error('Ошибка при входе:', error);
+        res.status(500).json({ message: 'Ошибка сервера' });
+    }
+
+
+})
 
 
 
