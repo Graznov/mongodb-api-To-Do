@@ -6,20 +6,16 @@ require('dotenv').config()
 const secretAccessKey = process.env.VERY_VERY_SECRET_FOR_ACCESS;
 const secretRefreshKey = process.env.VERY_VERY_SECRET_FOR_REFRESH;
 
-// Функция для генерации токена
 function generateAccessToken(a, b) {
     const payload = { id: a, email: b };
     console.log(`Run generateAccessToken(a, b)`)
-    // Генерация токена
-    return jwt.sign(payload, secretAccessKey, { expiresIn: '5m' }); // Токен истекает через 1 час
+    return jwt.sign(payload, secretAccessKey, { expiresIn: '1m' }); // Токен истекает через 1 час
 }
 
 function generateRefreshToken(a, b) {
     const payload = { id: a, email: b };
-
     console.log(`Run generateRefreshToken(a, b)`)
-    // Генерация токена
-    return jwt.sign(payload, secretRefreshKey, { expiresIn: '15m' }); // Токен истекает через 1 час
+    return jwt.sign(payload, secretRefreshKey, { expiresIn: '2m' }); // Токен истекает через 1 час
 }
 
 function verifyJWT(token, secret) {
