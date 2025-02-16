@@ -250,43 +250,48 @@ app.delete('/lists/:id', (req, res) => {
 app.patch('/lists/:id', async (req, res)=>{
 
     console.log(`PATCH start`)
-    // const accessToken = req.headers['authorization'];
-    // const cookies = Object.assign({}, req.cookies);
-    // const refreshToken = cookies.refreshToken
+    console.log(1)
+    const accessToken = req.headers['authorization'];
+    console.log(2)
+    const cookies = Object.assign({}, req.cookies);
+    console.log(3)
+    const refreshToken = cookies.refreshToken
     //
     // console.log(`accessToken: ${accessToken}\nrefreshToken: ${refreshToken}\nid=${req.params.id}`);
 
     // console.log(req.body)
     // try{
         //
+    console.log(4)
         const user = await db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
-        //
-        // // console.log(`user: ${JSON.stringify(user)}`)
-        //
+    console.log(5)
         if(!user) return res.status(400).json({message: 'Пользователь не найден'})
-        //
+    console.log(6)
         // if(verifyJWT(accessToken, process.env.VERY_VERY_SECRET_FOR_ACCESS)){
-        //     console.log(`server.js TOKEN GOOD`)
+        //     console.log(7)
+        //     console.log(`server.js accessToken GOOD`)
+        //     console.log(8)
         // } else {
-        //
+        //     console.log(9)
         //     if(verifyJWT(refreshToken, process.env.VERY_VERY_SECRET_FOR_REFRESH)){
+        //         console.log(10)
         //         console.log(`server.js refreshToken GOOD`)
+        //         console.log(11)
         //         //тут смена токенов!!!
         //
         //         const accessToken = generateAccessToken(user._id, user.email);
+        //         console.log(12)
         //         const refreshToken = generateRefreshToken(user._id, user.email);
+        //         console.log(13)
         //         await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
         //             { $set: { accessToken: accessToken, refreshToken: refreshToken } }
         //         )
+        //         console.log(14)
         //
         //         const responseUser = {
-        //             // id: user._id,
-        //             // name: user.name,
         //             accessToken:accessToken,
-        //             // email: user.email,
-        //             // creatDat: user.creatDat,
-        //             // tasks: user.tasksList
         //         }
+        //         console.log(15)
         //
         //         res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
         //             maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
@@ -294,24 +299,32 @@ app.patch('/lists/:id', async (req, res)=>{
         //             secure: true, // Cookie будут отправляться только по HTTPS
         //             sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
         //         })
+        //         console.log(16)
         //         // res.status(200).json(responseUser)
         //         console.log(111111111)
         //
-        //
+        //         await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
+        //             { $set: { tasksList: req.body } })
+        //         console.log(17)
         //
         //         return res.json(responseUser)
         //     } else{
+        //         console.log(18)
         //         //refreshToken неверен, нужно перелогиниться
-        //         return res.status(400).json({ message:'Токен не совпадает'})
+        //         return res.status(400).json({ message : 'Токен не совпадает'})
         //     }
+        //     console.log(19)
+        //
         // }
+    console.log(20)
 
         await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
             { $set: { tasksList: req.body } })
 
+    console.log(21)
         console.log(`#############\napp.patch(...\nreq.params.id: ${req.params.id}\nemail: ${user.email}\nreq.headers['authorization']: ${req.headers['authorization']}\n#############`)
 
-
+    console.log(22)
     // return response
 
         // const responseUser = {
