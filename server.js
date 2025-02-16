@@ -249,6 +249,7 @@ app.delete('/lists/:id', (req, res) => {
 //Изменение записей...
 app.patch('/lists/:id', async (req, res)=>{
 
+    console.log(`PATCH start`)
     // const accessToken = req.headers['authorization'];
     // const cookies = Object.assign({}, req.cookies);
     // const refreshToken = cookies.refreshToken
@@ -258,11 +259,11 @@ app.patch('/lists/:id', async (req, res)=>{
     // console.log(req.body)
     // try{
         //
-        // const user = await db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
+        const user = await db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
         //
         // // console.log(`user: ${JSON.stringify(user)}`)
         //
-        // if(!user) return res.status(400).json({message: 'Пользователь не найден'})
+        if(!user) return res.status(400).json({message: 'Пользователь не найден'})
         //
         // if(verifyJWT(accessToken, process.env.VERY_VERY_SECRET_FOR_ACCESS)){
         //     console.log(`server.js TOKEN GOOD`)
@@ -304,10 +305,14 @@ app.patch('/lists/:id', async (req, res)=>{
         //         return res.status(400).json({ message:'Токен не совпадает'})
         //     }
         // }
-    console.log(req.params)
 
-        db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
+        await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
             { $set: { tasksList: req.body } })
+
+        console.log(`#############\napp.patch(...\nreq.params.id: ${req.params.id}\nemail: ${user.email}\nreq.headers['authorization']: ${req.headers['authorization']}\n#############`)
+
+
+    // return response
 
         // const responseUser = {
         //     id: user._id,
