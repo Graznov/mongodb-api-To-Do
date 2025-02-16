@@ -9,22 +9,22 @@ const secretRefreshKey = process.env.VERY_VERY_SECRET_FOR_REFRESH;
 function generateAccessToken(a, b) {
     const payload = { id: a, email: b };
     console.log(`Run generateAccessToken(a, b)`)
-    return jwt.sign(payload, secretAccessKey, { expiresIn: '1m' }); // Токен истекает через 1 час
+    return jwt.sign(payload, secretAccessKey, { expiresIn: '10m' }); // Токен истекает через 1 час
 }
 
 function generateRefreshToken(a, b) {
     const payload = { id: a, email: b };
     console.log(`Run generateRefreshToken(a, b)`)
-    return jwt.sign(payload, secretRefreshKey, { expiresIn: '2m' }); // Токен истекает через 1 час
+    return jwt.sign(payload, secretRefreshKey, { expiresIn: '60m' }); // Токен истекает через 1 час
 }
 
 function verifyJWT(token, secret) {
     try {
         const decoded = jwt.verify(token, secret);
-        console.log(`TOKEN GOOD`)
+        console.log(`generToken.js TOKEN GOOD`)
         return true;
     } catch (error) {
-        console.log(`TOKEN BAD`)
+        console.log(`generToken.js TOKEN BAD`)
         return false;
     }
 }
