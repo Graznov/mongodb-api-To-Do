@@ -18,13 +18,13 @@ function generateRefreshToken(a, b) {
     return jwt.sign(payload, secretRefreshKey, { expiresIn: '60m' }); // Токен истекает через 1 час
 }
 
-function verifyJWT(token, secret) {
+function verifyJWT(token, secret, type) {
     try {
         const decoded = jwt.verify(token, secret);
-        console.log(`generToken.js TOKEN GOOD`)
+        console.log(`generToken.js ${type} TOKEN GOOD`)
         return true;
     } catch (error) {
-        console.log(`generToken.js TOKEN BAD`)
+        console.log(`generToken.js ${type} TOKEN BAD`)
         return false;
     }
 }

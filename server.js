@@ -152,11 +152,11 @@ app.get('/lists/:id', async (req, res) => {
         // console.log(`user:\n${JSON.stringify(user)}`
         if(!user) return res.status(400).json({message: 'Пользователь не найден'})
 
-        if(verifyJWT(accessToken, process.env.VERY_VERY_SECRET_FOR_ACCESS)){
+        if(verifyJWT(accessToken, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessToken')){
             console.log(`TOKEN GOOD`)
         } else {
 
-            if(verifyJWT(refreshToken, process.env.VERY_VERY_SECRET_FOR_REFRESH)){
+            if(verifyJWT(refreshToken, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
                 console.log(`refreshToken GOOD`)
                 //тут смена токенов!!!
 
@@ -176,7 +176,7 @@ app.get('/lists/:id', async (req, res) => {
                 }
 
                 res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
-                    maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
+                    maxAge: 3600000, // Время жизни cookie в миллисекундах (60 минут)
                     httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
                     secure: true, // Cookie будут отправляться только по HTTPS
                     sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
@@ -246,101 +246,59 @@ app.delete('/lists/:id', (req, res) => {
 })
 //...удаление
 
-//Изменение записей...
-app.patch('/lists/:id', async (req, res)=>{
+//Добавление новой записи...
+app.patch('/lists/pushtask/:id', async (req, res)=>{
 
-    console.log(`PATCH start`)
-    console.log(1)
-    const accessToken = req.headers['authorization'];
-    console.log(2)
+    const accessTokenFont = req.headers['authorization'];
     const cookies = Object.assign({}, req.cookies);
-    console.log(3)
-    const refreshToken = cookies.refreshToken
-    //
-    // console.log(`accessToken: ${accessToken}\nrefreshToken: ${refreshToken}\nid=${req.params.id}`);
+    const refreshTokenFront = cookies.refreshToken
 
-    // console.log(req.body)
-    // try{
-        //
-    console.log(4)
-        const user = await db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
-    console.log(5)
-        if(!user) return res.status(400).json({message: 'Пользователь не найден'})
-    console.log(6)
-        // if(verifyJWT(accessToken, process.env.VERY_VERY_SECRET_FOR_ACCESS)){
-        //     console.log(7)
-        //     console.log(`server.js accessToken GOOD`)
-        //     console.log(8)
-        // } else {
-        //     console.log(9)
-        //     if(verifyJWT(refreshToken, process.env.VERY_VERY_SECRET_FOR_REFRESH)){
-        //         console.log(10)
-        //         console.log(`server.js refreshToken GOOD`)
-        //         console.log(11)
-        //         //тут смена токенов!!!
-        //
-        //         const accessToken = generateAccessToken(user._id, user.email);
-        //         console.log(12)
-        //         const refreshToken = generateRefreshToken(user._id, user.email);
-        //         console.log(13)
-        //         await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
-        //             { $set: { accessToken: accessToken, refreshToken: refreshToken } }
-        //         )
-        //         console.log(14)
-        //
-        //         const responseUser = {
-        //             accessToken:accessToken,
-        //         }
-        //         console.log(15)
-        //
-        //         res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
-        //             maxAge: 900000, // Время жизни cookie в миллисекундах (15 минут)
-        //             httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-        //             secure: true, // Cookie будут отправляться только по HTTPS
-        //             sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-        //         })
-        //         console.log(16)
-        //         // res.status(200).json(responseUser)
-        //         console.log(111111111)
-        //
-        //         await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
-        //             { $set: { tasksList: req.body } })
-        //         console.log(17)
-        //
-        //         return res.json(responseUser)
-        //     } else{
-        //         console.log(18)
-        //         //refreshToken неверен, нужно перелогиниться
-        //         return res.status(400).json({ message : 'Токен не совпадает'})
-        //     }
-        //     console.log(19)
-        //
-        // }
-    console.log(20)
+    const user = await db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
 
-        await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
-            { $set: { tasksList: req.body } })
+    if(!user) return res.status(400).json({message: 'Пользователь не найден'})
 
-    console.log(21)
-        console.log(`#############\napp.patch(...\nreq.params.id: ${req.params.id}\nemail: ${user.email}\nreq.headers['authorization']: ${req.headers['authorization']}\n#############`)
+    async function updateBD(){
+        await db
+            .collection('lists')
+            .updateOne({_id: new ObjectId (req.params.id)}, {$push: {tasksList: req.body}} )
+    }
 
-    console.log(22)
-    // return response
 
-        // const responseUser = {
-        //     id: user._id,
-        //     name: user.name,
-        //     // accessToken:user.accessToken,
-        //     // email: user.email,
-        //     // creatDat: user.creatDat,
-        //     tasks: user.tasksList
-        // }
-        // res.status(200).json(responseUser)
-    // } catch (error) {
-    //     console.error('Ошибка при входе:', error);
-    //     res.status(500).json({ message: 'Ошибка сервера' });
-    // }
+        if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')){
+            console.log(`server.js accessToken GOOD`)
+            updateBD()
+        } else {
 
+            if(verifyJWT(refreshTokenFront, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
+
+                updateBD()
+
+                const accessToken = generateAccessToken(user._id, user.email);
+                const refreshToken = generateRefreshToken(user._id, user.email);
+
+                await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
+                    { $set: { accessToken: accessToken, refreshToken: refreshToken } }
+                )
+
+                res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
+                    maxAge: 3600000, // Время жизни cookie в миллисекундах (60 минут)
+                    httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+                    secure: true, // Cookie будут отправляться только по HTTPS
+                    sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+                })
+
+                return res.json({accessToken:accessToken})
+            } else {
+
+                res.cookie('refreshToken', '', { //ставим на фронт refreshToken
+                    maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
+                    httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+                    secure: true, // Cookie будут отправляться только по HTTPS
+                    sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+                })
+                return res.status(400).json({ message : 'Токен не совпадает'})
+            }
+        }
 })
 // ...изменение записей
 
