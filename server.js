@@ -302,6 +302,64 @@ app.patch('/lists/pushtask/:id', async (req, res)=>{
 })
 // ...изменение записей
 
+//Удаление записи task...
+app.patch('/lists/deletetask/:id', async (req, res)=>{
+
+    const idDelTask = req.body.id
+    const accessTokenFont = req.headers['authorization'];
+    const cookies = Object.assign({}, req.cookies);
+    const refreshTokenFront = cookies.refreshToken
+
+    const user = await db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
+
+    if(!user) return res.status(400).json({message: 'Пользователь не найден'})
+
+    async function updateBD(){
+        await db
+            .collection('lists')
+            .updateOne({_id: new ObjectId (req.params.id)},
+                {$set:
+                        {tasksList: user.tasksList.filter(element => element.id !== idDelTask)}
+                })
+    }
+
+    if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')){
+        console.log(`server.js accessToken GOOD`)
+        updateBD()
+    } else {
+
+        if(verifyJWT(refreshTokenFront, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
+
+            updateBD()
+
+            const accessToken = generateAccessToken(user._id, user.email);
+            const refreshToken = generateRefreshToken(user._id, user.email);
+
+            await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
+                { $set: { accessToken: accessToken, refreshToken: refreshToken } }
+            )
+
+            res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
+                maxAge: 3600000, // Время жизни cookie в миллисекундах (60 минут)
+                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+                secure: true, // Cookie будут отправляться только по HTTPS
+                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+            })
+
+            return res.json({accessToken:accessToken})
+        } else {
+
+            res.cookie('refreshToken', '', { //ставим на фронт refreshToken
+                maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
+                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+                secure: true, // Cookie будут отправляться только по HTTPS
+                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+            })
+            return res.status(400).json({ message : 'Токен не совпадает'})
+        }
+    }
+})
+// ...удаление записи task
 
 
 
