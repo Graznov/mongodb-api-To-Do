@@ -228,21 +228,60 @@ app.get('/lists/', (req, res) => {
 })
 
 //Удаление:
-app.delete('/lists/:id', (req, res) => {
-    if(ObjectId.isValid(req.params.id)){
-        db
-            .collection('lists')
-            .deleteOne({ _id: new ObjectId(req.params.id) })
-            .then((result)=>{
-                res
-                    .status(200)
-                    .json(result)
-            })
-            .catch(()=> handleError(res, 'Something went wrong.'))
+app.delete('/lists/delete/:id', (req, res) => {
 
-    } else {
-        handleError(res, 'Del.Wrong id')
+    const accessTokenFont = req.headers['authorization'];
+    const cookies = Object.assign({}, req.cookies);
+    const refreshTokenFront = cookies.refreshToken
+    console.log(`DELETE\nreq.params.id: ${req.params.id}\naccessTokenFont: ${accessTokenFont}\nrefreshTokenFront: ${refreshTokenFront}`);
+
+    const user = db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
+    if(!user) return res.status(400).json({message: 'Пользователь не найден'})
+
+
+
+    if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')
+        && verifyJWT(refreshTokenFront, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
+
+        console.log(`Tokens Good, user delete...`)
+
+
+        res.cookie('refreshToken', '', { //ставим на фронт refreshToken
+            maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
+            httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+            secure: true, // Cookie будут отправляться только по HTTPS
+            sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+        })
+            db
+                .collection('lists')
+                .deleteOne({ _id: new ObjectId(req.params.id) })
+                .then((result)=>{
+                    res
+                        .status(200)
+                        .json(result)
+                })
+
+        // return res.json({message:'User deleted successfully.'})
+
     }
+
+
+
+
+    // if(ObjectId.isValid(req.params.id)){
+    //     db
+    //         .collection('lists')
+    //         .deleteOne({ _id: new ObjectId(req.params.id) })
+    //         .then((result)=>{
+    //             res
+    //                 .status(200)
+    //                 .json(result)
+    //         })
+    //         .catch(()=> handleError(res, 'Something went wrong.'))
+    //
+    // } else {
+    //     handleError(res, 'Del.Wrong id')
+    // }
 })
 //...удаление
 
