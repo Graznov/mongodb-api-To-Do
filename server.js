@@ -78,12 +78,9 @@ app.post('/lists/register', (req, res) => {
 app.post('/lists/login', async (req, res) => {
     const { email, password } = req.body;
 
-    console.log(`email: ${ email }\npassword: ${ password }`);
-
     try{
         const user = await db.collection('lists').findOne({ email: email, password: password });
         if(!user) return res.status(400).json({ message: 'Пользователь не найден' })
-        console.log(user)
 
         const accessToken = generateAccessToken(user._id, email);
         const refreshToken = generateRefreshToken(user._id, email);
@@ -108,7 +105,6 @@ app.post('/lists/login', async (req, res) => {
         })
 
         res.status(200).json(responseData);
-        console.log(`Данные отправлены:\n${JSON.stringify(responseData)}`);
 
     } catch (e) {
         console.error('Ошибка при входе:', error);
@@ -118,7 +114,6 @@ app.post('/lists/login', async (req, res) => {
 });
 
 app.post('/lists/del-cookie', (req, res) => {
-    console.log(`Del cookie`)
     res.cookie('refreshToken', '', {
         maxAge: -1, // Время жизни cookie в миллисекундах (15 минут)
         httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
@@ -142,13 +137,10 @@ app.get('/lists/:id', async (req, res) => {
 
     try{
         const user = await db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
-        // console.log(`user:\n${JSON.stringify(user)}`
         if(!user) return res.status(400).json({message: 'Пользователь не найден'})
 
         if(verifyJWT(accessToken, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessToken')){
-            console.log(`TOKEN GOOD`)
         } else {
-
             if(verifyJWT(refreshToken, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
                 console.log(`refreshToken GOOD`)
                 //тут смена токенов!!!
@@ -202,8 +194,6 @@ app.get('/lists/:id', async (req, res) => {
 // временно:
 app.get('/lists/', (req, res) => {
 
-    console.log(`req.header: ${req.headers['authorization']}`);
-
     let arr = []
     db
         .collection('lists')
@@ -226,18 +216,12 @@ app.delete('/lists/delete/:id', (req, res) => {
     const accessTokenFont = req.headers['authorization'];
     const cookies = Object.assign({}, req.cookies);
     const refreshTokenFront = cookies.refreshToken
-    console.log(`DELETE\nreq.params.id: ${req.params.id}\naccessTokenFont: ${accessTokenFont}\nrefreshTokenFront: ${refreshTokenFront}`);
 
     const user = db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
     if(!user) return res.status(400).json({message: 'Пользователь не найден'})
 
-
-
     if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')
         && verifyJWT(refreshTokenFront, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
-
-        console.log(`Tokens Good, user delete...`)
-
 
         res.cookie('refreshToken', '', { //ставим на фронт refreshToken
             maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
@@ -253,9 +237,6 @@ app.delete('/lists/delete/:id', (req, res) => {
                         .status(200)
                         .json(result)
                 })
-
-        // return res.json({message:'User deleted successfully.'})
-
     } else {
         res.cookie('refreshToken', '', { //ставим на фронт refreshToken
             maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
@@ -285,9 +266,7 @@ app.patch('/lists/pushtask/:id', async (req, res)=>{
             .updateOne({_id: new ObjectId (req.params.id)}, {$push: {tasksList: req.body}} )
     }
 
-
         if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')){
-            console.log(`server.js accessToken GOOD`)
             updateBD()
         } else {
 
@@ -321,8 +300,6 @@ app.patch('/lists/pushtask/:id', async (req, res)=>{
                 return res.status(400).json({ message : 'Токен не совпадает'})
             }
         }
-    // verifyTokens(accessTokenFont, refreshTokenFront, req.params.id, updateBD())
-
 })
 // ...
 
@@ -346,9 +323,7 @@ app.patch('/lists/deletetask/:id', async (req, res)=>{
                         {tasksList: user.tasksList.filter(element => element.id !== idDelTask)}
                 })
     }
-
     if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')){
-        console.log(`server.js accessToken GOOD`)
         updateBD()
     } else {
 
@@ -383,17 +358,12 @@ app.patch('/lists/deletetask/:id', async (req, res)=>{
         }
     }
 
-    // verifyTokens(accessTokenFont, refreshTokenFront, req.params.id, updateBD())
-
 })
 // ...удаление записи task
 
 // изменение записи task...
 
 app.patch('/lists/changetask/:id', async (req, res)=>{
-
-    console.log(req.params.id)
-    console.log(req.body)
 
     const accessTokenFont = req.headers['authorization'];
     const cookies = Object.assign({}, req.cookies);
@@ -415,7 +385,6 @@ app.patch('/lists/changetask/:id', async (req, res)=>{
     updateBD()
 
     if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')){
-        console.log(`server.js accessToken GOOD`)
         updateBD()
     } else {
 
@@ -449,8 +418,6 @@ app.patch('/lists/changetask/:id', async (req, res)=>{
             return res.status(400).json({ message : 'Токен не совпадает'})
         }
     }
-
-    // verifyTokens(accessTokenFont, refreshTokenFront, req.params.id, updateBD())
 
 })
 // ...изменение записи task
@@ -481,7 +448,6 @@ app.patch('/lists/chacked/:id', async (req, res)=>{
     }
 
     if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')){
-        console.log(`server.js accessToken GOOD`)
         updateBD()
     } else {
 
@@ -515,7 +481,6 @@ app.patch('/lists/chacked/:id', async (req, res)=>{
             return res.status(400).json({ message : 'Токен не совпадает'})
         }
     }
-    // verifyTokens(accessTokenFont, refreshTokenFront, req.params.id, user._id, user.email,  updateBD())
 })
 // ...изменение записи task
 
