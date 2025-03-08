@@ -26,6 +26,8 @@ const corsOptions = {
 
 const PORT = 3000;
 
+// console.log('%c'+'123','color: #e42c64')
+
 const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
