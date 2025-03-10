@@ -73,7 +73,9 @@ app.post('/lists/register', (req, res) => {
                                 refreshToken: '',
                                 accessToken: '',
                                 creatDat: new Date(),
-                                tasksList:[]} }) //добавление токена и даты создания
+                                tasksList:[],
+                                notes:[]
+                            } }) //добавление токена и даты создания
                         res
                             .status(201)
                             .json("Created")
@@ -104,6 +106,7 @@ app.post('/lists/login', async (req, res) => {
             id: user._id,
             name: user.name,
             pathImg: user.pathImg,
+            // notes: user.notes,
         };
 
         res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
@@ -241,7 +244,8 @@ app.get('/lists/:id', async (req, res) => {
                     email: user.email,
                     creatDat: user.creatDat,
                     tasks: user.tasksList,
-                    pathImg: user.pathImg
+                    pathImg: user.pathImg,
+                    // notes: user.notes
                 }
 
                 res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
