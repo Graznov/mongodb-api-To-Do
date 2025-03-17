@@ -245,7 +245,7 @@ app.get('/lists/:id', async (req, res) => {
                     creatDat: user.creatDat,
                     tasks: user.tasksList,
                     pathImg: user.pathImg,
-                    // notes: user.notes
+                    notes: user.notes
                 }
 
                 res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
@@ -269,7 +269,9 @@ app.get('/lists/:id', async (req, res) => {
             email: user.email,
             creatDat: user.creatDat,
             tasks: user.tasksList,
-            pathImg: user.pathImg
+            pathImg: user.pathImg,
+            notes: user.notes
+
         }
         res.status(200).json(responseUser)
     } catch (error) {
@@ -391,6 +393,190 @@ app.patch('/lists/pushtask/:id', async (req, res)=>{
         }
 })
 // ...
+
+// добавление новой записи Note...
+
+app.patch('/lists/newnote/:id', async (req, res)=>{
+
+    const accessTokenFont = req.headers['authorization'];
+    const cookies = Object.assign({}, req.cookies);
+    const refreshTokenFront = cookies.refreshToken
+
+    const user = await db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
+
+    console.log(user)
+
+    if(!user) return res.status(400).json({message: 'Пользователь не найден'})
+    //
+    async function updateBD(){
+        await db
+            .collection('lists')
+            .updateOne({_id: new ObjectId (req.params.id)}, {$push: {notes: req.body}} )
+    }
+    //
+    if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')){
+        updateBD()
+    } else {
+    //
+        if(verifyJWT(refreshTokenFront, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
+
+            updateBD()
+
+            const accessToken = generateAccessToken(user._id, user.email);
+            const refreshToken = generateRefreshToken(user._id, user.email);
+
+            await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
+                { $set: { accessToken: accessToken, refreshToken: refreshToken } }
+            )
+
+            res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
+                maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
+                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+                secure: true, // Cookie будут отправляться только по HTTPS
+                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+            })
+
+            return res.json({accessToken:accessToken})
+        } else {
+
+            res.cookie('refreshToken', '', { //ставим на фронт refreshToken
+                maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
+                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+                secure: true, // Cookie будут отправляться только по HTTPS
+                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+            })
+            return res.status(400).json({ message : 'Токен не совпадает'})
+        }
+    }
+})
+//...добавление новой записи Note
+
+//Удаление записи note...
+app.patch('/lists/deletenote/:id', async (req, res)=>{
+
+    const idDelNote = req.body.id
+    const accessTokenFont = req.headers['authorization'];
+    const cookies = Object.assign({}, req.cookies);
+    const refreshTokenFront = cookies.refreshToken
+
+    const user = await db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
+
+    if(!user) return res.status(400).json({message: 'Пользователь не найден'})
+
+    console.log(user)
+    console.log('%c'+`idDelNote: ${idDelNote}`, 'color: red')
+
+    async function updateBD(){
+        await db
+            .collection('lists')
+            .updateOne({_id: new ObjectId (req.params.id)},
+                {$set:
+                        {notes: user.notes.filter(element => element.id !== idDelNote)}
+                })
+    }
+    if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')){
+        updateBD()
+    } else {
+
+        if(verifyJWT(refreshTokenFront, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
+
+            updateBD()
+
+            const accessToken = generateAccessToken(user._id, user.email);
+            const refreshToken = generateRefreshToken(user._id, user.email);
+
+            await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
+                { $set: { accessToken: accessToken, refreshToken: refreshToken } }
+            )
+
+            res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
+                maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
+                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+                secure: true, // Cookie будут отправляться только по HTTPS
+                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+            })
+
+            return res.json({accessToken:accessToken})
+        } else {
+
+            res.cookie('refreshToken', '', { //ставим на фронт refreshToken
+                maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
+                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+                secure: true, // Cookie будут отправляться только по HTTPS
+                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+            })
+            return res.status(400).json({ message : 'Токен не совпадает'})
+        }
+    }
+
+})
+// ...удаление записи note
+
+// изменение записи note...
+
+app.patch('/lists/changenote/:id', async (req, res)=>{
+
+    const redactNote = req.body
+
+    console.log(redactNote)
+
+    const accessTokenFont = req.headers['authorization'];
+    const cookies = Object.assign({}, req.cookies);
+    const refreshTokenFront = cookies.refreshToken
+
+    const user = await db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
+
+    if(!user) return res.status(400).json({message: 'Пользователь не найден'})
+
+    async function updateBD(){
+        const arr = user.notes.reduce((a,b,c)=>{
+            (b.id!==req.body.id) ? a.push(b) : a.push(req.body)
+            return a
+        },[])
+        await db
+            .collection('lists')
+            .updateOne({_id: new ObjectId (req.params.id)}, {$set:{notes: arr}})
+    }
+
+    // updateBD()
+    //
+    if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')){
+        updateBD()
+    } else {
+
+        if(verifyJWT(refreshTokenFront, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
+
+            updateBD()
+
+            const accessToken = generateAccessToken(user._id, user.email);
+            const refreshToken = generateRefreshToken(user._id, user.email);
+
+            await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
+                { $set: { accessToken: accessToken, refreshToken: refreshToken } }
+            )
+
+            res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
+                maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
+                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+                secure: true, // Cookie будут отправляться только по HTTPS
+                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+            })
+
+            return res.json({accessToken:accessToken})
+        } else {
+
+            res.cookie('refreshToken', '', { //ставим на фронт refreshToken
+                maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
+                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+                secure: true, // Cookie будут отправляться только по HTTPS
+                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+            })
+            return res.status(400).json({ message : 'Токен не совпадает'})
+        }
+    }
+
+})
+// ...изменение записи note
 
 //Удаление записи task...
 app.patch('/lists/deletetask/:id', async (req, res)=>{
