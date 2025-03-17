@@ -311,6 +311,8 @@ app.delete('/lists/delete/:id', (req, res) => {
     const user = db.collection('lists').findOne({_id: new ObjectId (req.params.id)})
     if(!user) return res.status(400).json({message: 'Пользователь не найден'})
 
+
+
     if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')
         && verifyJWT(refreshTokenFront, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
 
