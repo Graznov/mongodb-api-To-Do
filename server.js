@@ -711,55 +711,117 @@ app.patch('/lists/chacked/:id', async (req, res)=>{
 
     if(!user) return res.status(400).json({message: 'Пользователь не найден'})
 
-    async function updateBD(){
-        const arr = user.tasksList.reduce((a,b,c)=>{
-            if(b.id!==req.body.id) {
-                a.push(b)
-            } else {
-                (b.isCompleted) ? b.isCompleted=false : b.isCompleted=true
-                a.push(b)
-            }
-            return a
-        },[])
-        await db
-            .collection('lists')
-            .updateOne({_id: new ObjectId (req.params.id)}, {$set:{tasksList: arr}})
-    }
+    try {
 
-    if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')){
-        updateBD()
-    } else {
+        async function updateBD(){
+            const arr = user.tasksList.reduce((a,b,c)=>{
+                if(b.id!==req.body.id) {
+                    a.push(b)
+                } else {
+                    (b.isCompleted) ? b.isCompleted=false : b.isCompleted=true
+                    a.push(b)
+                }
+                return a
+            },[])
+            await db
+                .collection('lists')
+                .updateOne({_id: new ObjectId (req.params.id)}, {$set:{tasksList: arr}})
+        }
 
-        if(verifyJWT(refreshTokenFront, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
-
+        if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')){
             updateBD()
-
-            const accessToken = generateAccessToken(user._id, user.email);
-            const refreshToken = generateRefreshToken(user._id, user.email);
-
-            await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
-                { $set: { accessToken: accessToken, refreshToken: refreshToken } }
-            )
-
-            res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
-                maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
-                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                secure: true, // Cookie будут отправляться только по HTTPS
-                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-            })
-
-            return res.json({accessToken:accessToken})
         } else {
 
-            res.cookie('refreshToken', '', { //ставим на фронт refreshToken
-                maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
-                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                secure: true, // Cookie будут отправляться только по HTTPS
-                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-            })
-            return res.status(400).json({ message : 'Токен не совпадает'})
+            if(verifyJWT(refreshTokenFront, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
+
+                updateBD()
+
+                const accessToken = generateAccessToken(user._id, user.email);
+                const refreshToken = generateRefreshToken(user._id, user.email);
+
+                await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
+                    { $set: { accessToken: accessToken, refreshToken: refreshToken } }
+                )
+
+                res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
+                    maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
+                    httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+                    secure: true, // Cookie будут отправляться только по HTTPS
+                    sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+                })
+
+                return res.json({accessToken:accessToken})
+            } else {
+
+                res.cookie('refreshToken', '', { //ставим на фронт refreshToken
+                    maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
+                    httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+                    secure: true, // Cookie будут отправляться только по HTTPS
+                    sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+                })
+                return res.status(400).json({ message : 'Токен не совпадает'})
+            }
         }
+
+    } catch (error) {
+        // Обработка неожиданных ошибок (500)
+        res.status(500).json({
+            success: false,
+            error: "Внутренняя ошибка сервера",
+            details: error.message
+        });
+
     }
+
+    // async function updateBD(){
+    //     const arr = user.tasksList.reduce((a,b,c)=>{
+    //         if(b.id!==req.body.id) {
+    //             a.push(b)
+    //         } else {
+    //             (b.isCompleted) ? b.isCompleted=false : b.isCompleted=true
+    //             a.push(b)
+    //         }
+    //         return a
+    //     },[])
+    //     await db
+    //         .collection('lists')
+    //         .updateOne({_id: new ObjectId (req.params.id)}, {$set:{tasksList: arr}})
+    // }
+    //
+    // if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')){
+    //     updateBD()
+    // } else {
+    //
+    //     if(verifyJWT(refreshTokenFront, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
+    //
+    //         updateBD()
+    //
+    //         const accessToken = generateAccessToken(user._id, user.email);
+    //         const refreshToken = generateRefreshToken(user._id, user.email);
+    //
+    //         await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
+    //             { $set: { accessToken: accessToken, refreshToken: refreshToken } }
+    //         )
+    //
+    //         res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
+    //             maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
+    //             httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+    //             secure: true, // Cookie будут отправляться только по HTTPS
+    //             sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+    //         })
+    //
+    //         return res.json({accessToken:accessToken})
+    //     } else {
+    //
+    //         res.cookie('refreshToken', '', { //ставим на фронт refreshToken
+    //             maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
+    //             httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
+    //             secure: true, // Cookie будут отправляться только по HTTPS
+    //             sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
+    //         })
+    //         return res.status(400).json({ message : 'Токен не совпадает'})
+    //     }
+    // }
 })
 // ...изменение записи task
 
