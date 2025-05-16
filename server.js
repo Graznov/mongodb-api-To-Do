@@ -15,6 +15,7 @@ const {recCloud} = require("./recCloud");
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const {delCookie, setCookie} = require("./setDelCookies");
 // const upload = multer({ dest: 'uploads/' })
 
 const corsOptions = {
@@ -49,6 +50,8 @@ connectToDb((err)=>{
 const handleError = (res, error) => {
     res.status(500).json({ error })
 }
+
+const time = 86400000 // Время жизни cookie в миллисекундах (24 часа)
 
 //Добавление аккаунта и аутентификация:
 app.post('/lists/register', (req, res) => {
@@ -109,12 +112,7 @@ app.post('/lists/login', async (req, res) => {
             // notes: user.notes,
         };
 
-        res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
-            maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
-            httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-            secure: true, // Cookie будут отправляться только по HTTPS
-            sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-        })
+        setCookie(res, refreshToken, time)
 
         res.status(200).json(responseData);
 
@@ -126,12 +124,7 @@ app.post('/lists/login', async (req, res) => {
 });
 
 app.post('/lists/del-cookie', (req, res) => {
-    res.cookie('refreshToken', '', {
-        maxAge: -1, // Время жизни cookie в миллисекундах (15 минут)
-        httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-        secure: true, // Cookie будут отправляться только по HTTPS
-        sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-    });
+    delCookie(res)
     res.send('Cookie has been set!');
 }); //удаление Cookie с фронта при выходе из аккаунта
 
@@ -205,14 +198,9 @@ app.post('/lists/avatar/:id', upload.single('file'), async (req, res) => {
         deleteImg()
 
 });
-
-
 // ...установка аватарки
 
-
-
 //получение данных акка...
-
 app.get('/lists/:id', async (req, res) => {
 
     const accessToken = req.headers['authorization'];
@@ -248,12 +236,8 @@ app.get('/lists/:id', async (req, res) => {
                     notes: user.notes
                 }
 
-                res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
-                    maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
-                    httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                    secure: true, // Cookie будут отправляться только по HTTPS
-                    sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-                })
+                setCookie(res, refreshToken, time)
+
                 // res.status(200).json(responseUser)
                 return res.json(responseUser)
             } else{
@@ -316,12 +300,7 @@ app.delete('/lists/delete/:id', (req, res) => {
     if(verifyJWT(accessTokenFont, process.env.VERY_VERY_SECRET_FOR_ACCESS, 'AccessT')
         && verifyJWT(refreshTokenFront, process.env.VERY_VERY_SECRET_FOR_REFRESH, 'RefreshToken')){
 
-        res.cookie('refreshToken', '', { //ставим на фронт refreshToken
-            maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
-            httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-            secure: true, // Cookie будут отправляться только по HTTPS
-            sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-        })
+        delCookie(res)
             db
                 .collection('lists')
                 .deleteOne({ _id: new ObjectId(req.params.id) })
@@ -331,12 +310,7 @@ app.delete('/lists/delete/:id', (req, res) => {
                         .json(result)
                 })
     } else {
-        res.cookie('refreshToken', '', { //ставим на фронт refreshToken
-            maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
-            httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-            secure: true, // Cookie будут отправляться только по HTTPS
-            sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-        })
+        delCookie(res)
         res.status(888).json(`result`)
     }
 })
@@ -373,23 +347,11 @@ app.patch('/lists/pushtask/:id', async (req, res)=>{
                 await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
                     { $set: { accessToken: accessToken, refreshToken: refreshToken } }
                 )
-
-                res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
-                    maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
-                    httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                    secure: true, // Cookie будут отправляться только по HTTPS
-                    sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-                })
+                setCookie(res, refreshToken, time)
 
                 return res.json({accessToken:accessToken})
             } else {
-
-                res.cookie('refreshToken', '', { //ставим на фронт refreshToken
-                    maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
-                    httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                    secure: true, // Cookie будут отправляться только по HTTPS
-                    sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-                })
+                delCookie(res)
                 return res.status(400).json({ message : 'Токен не совпадает'})
             }
         }
@@ -430,23 +392,11 @@ app.patch('/lists/newnote/:id', async (req, res)=>{
             await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
                 { $set: { accessToken: accessToken, refreshToken: refreshToken } }
             )
-
-            res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
-                maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
-                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                secure: true, // Cookie будут отправляться только по HTTPS
-                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-            })
+            setCookie(res, refreshToken, time)
 
             return res.json({accessToken:accessToken})
         } else {
-
-            res.cookie('refreshToken', '', { //ставим на фронт refreshToken
-                maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
-                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                secure: true, // Cookie будут отправляться только по HTTPS
-                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-            })
+            delCookie(res)
             return res.status(400).json({ message : 'Токен не совпадает'})
         }
     }
@@ -490,23 +440,11 @@ app.patch('/lists/deletenote/:id', async (req, res)=>{
             await db.collection('lists').updateOne({_id: new ObjectId (req.params.id)},
                 { $set: { accessToken: accessToken, refreshToken: refreshToken } }
             )
-
-            res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
-                maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
-                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                secure: true, // Cookie будут отправляться только по HTTPS
-                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-            })
+            setCookie(res, refreshToken, time)
 
             return res.json({accessToken:accessToken})
         } else {
-
-            res.cookie('refreshToken', '', { //ставим на фронт refreshToken
-                maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
-                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                secure: true, // Cookie будут отправляться только по HTTPS
-                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-            })
+            delCookie(res)
             return res.status(400).json({ message : 'Токен не совпадает'})
         }
     }
@@ -557,22 +495,11 @@ app.patch('/lists/changenote/:id', async (req, res)=>{
                 { $set: { accessToken: accessToken, refreshToken: refreshToken } }
             )
 
-            res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
-                maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
-                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                secure: true, // Cookie будут отправляться только по HTTPS
-                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-            })
+            setCookie(res, refreshToken, time)
 
             return res.json({accessToken:accessToken})
         } else {
-
-            res.cookie('refreshToken', '', { //ставим на фронт refreshToken
-                maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
-                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                secure: true, // Cookie будут отправляться только по HTTPS
-                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-            })
+            delCookie(res)
             return res.status(400).json({ message : 'Токен не совпадает'})
         }
     }
@@ -615,22 +542,11 @@ app.patch('/lists/deletetask/:id', async (req, res)=>{
                 { $set: { accessToken: accessToken, refreshToken: refreshToken } }
             )
 
-            res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
-                maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
-                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                secure: true, // Cookie будут отправляться только по HTTPS
-                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-            })
+            setCookie(res, refreshToken, time)
 
             return res.json({accessToken:accessToken})
         } else {
-
-            res.cookie('refreshToken', '', { //ставим на фронт refreshToken
-                maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
-                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                secure: true, // Cookie будут отправляться только по HTTPS
-                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-            })
+            delCookie(res)
             return res.status(400).json({ message : 'Токен не совпадает'})
         }
     }
@@ -676,30 +592,17 @@ app.patch('/lists/changetask/:id', async (req, res)=>{
                 { $set: { accessToken: accessToken, refreshToken: refreshToken } }
             )
 
-            res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
-                maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
-                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                secure: true, // Cookie будут отправляться только по HTTPS
-                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-            })
+            setCookie(res, refreshToken, time)
 
             return res.json({accessToken:accessToken})
         } else {
-
-            res.cookie('refreshToken', '', { //ставим на фронт refreshToken
-                maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
-                httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                secure: true, // Cookie будут отправляться только по HTTPS
-                sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-            })
+            delCookie(res)
             return res.status(400).json({ message : 'Токен не совпадает'})
         }
     }
 
 })
 // ...изменение записи task
-
-
 
 app.patch('/lists/chacked/:id', async (req, res)=>{
 
@@ -743,22 +646,11 @@ app.patch('/lists/chacked/:id', async (req, res)=>{
                     { $set: { accessToken: accessToken, refreshToken: refreshToken } }
                 )
 
-                res.cookie('refreshToken', refreshToken, { //ставим на фронт refreshToken
-                    maxAge: 86400000, // Время жизни cookie в миллисекундах (24 часа)
-                    httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                    secure: true, // Cookie будут отправляться только по HTTPS
-                    sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-                })
+                setCookie(res, refreshToken, time)
 
                 return res.json({accessToken:accessToken})
             } else {
-
-                res.cookie('refreshToken', '', { //ставим на фронт refreshToken
-                    maxAge: -1, // Время жизни cookie в миллисекундах (60 минут)
-                    httpOnly: true, // Cookie доступны только на сервере (не через JavaScript на фронтенде)
-                    secure: true, // Cookie будут отправляться только по HTTPS
-                    sameSite: 'strict' // Ограничивает отправку cookie только для запросов с того же сайта
-                })
+                delCookie(res)
                 return res.status(400).json({ message : 'Токен не совпадает'})
             }
         }
